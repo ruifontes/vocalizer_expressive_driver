@@ -17,10 +17,11 @@ from synthDriverHandler import SynthDriver as BaseDriver, VoiceInfo, synthIndexR
 import languageHandler
 from logHandler import log
 import speech
+import speech.speech
 from . import _languages
 from . import _vocalizer
 from ._voiceManager import VoiceManager
-
+import ui
 from . import languageDetection
 from . import _config
 
@@ -88,12 +89,11 @@ class SynthDriver(BaseDriver):
 				log.info("Vocalizer demo license for NVDA as expired.")
 			raise
 		self._voiceManager = VoiceManager()
-		# Patch speech.commands.speak and store a reference to the real speak function.
-		self._realSpeakFunc = speech.speak
-		self._realSpellingFunc = speech.speakSpelling
-		speech.commands.speakWithoutPauses = self.patchedSpeak
-		speech.commands.speak = self.patchedSpeak
-		speech.commands.speakSpelling = self.patchedSpeakSpelling
+		# Patch speech.speak and store a reference to the real speak function.
+		self._realSpeakFunc = speech.speech.speak
+		self._realSpellingFunc = speech.speech.speakSpelling
+		speech.speech.speak = self.patchedSpeak
+		speech.speech.speakSpelling = self.patchedSpeakSpelling
 		self._languageDetector = languageDetection.LanguageDetector(self._voiceManager.languages)
 
 
@@ -104,8 +104,8 @@ class SynthDriver(BaseDriver):
 			synthDoneSpeaking.notify(synth=self)
 
 	def terminate(self):
-		speech.commands.speak = self._realSpeakFunc
-		speech.commands.speakSpelling = self._realSpellingFunc
+		speech.speech.speak = self._realSpeakFunc
+		speech.speech.speakSpelling = self._realSpellingFunc
 		try:
 			self.cancel()
 			self._voiceManager.close()

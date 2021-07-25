@@ -38,11 +38,12 @@
 
 from collections import defaultdict
 from io import StringIO
-
+import ui
 from .blocks import BLOCKS, BLOCK_RSHIFT
 
 import config
 from logHandler import log
+import synthDriverHandler
 import languageHandler
 import speech
 from .. import _config
@@ -137,11 +138,11 @@ class LanguageDetector(object):
 	def add_detected_language_commands(self, speechSequence):
 		sb = StringIO()
 		charset = None
-		defaultLang = speech.getSynth().language
+		defaultLang = synthDriverHandler.getSynth().language
 		curLang = defaultLang
 		tmpLang = curLang.split("_")[0]
 		for command in speechSequence:
-			if isinstance(command, speech.LangChangeCommand):
+			if isinstance(command, speech.commands.LangChangeCommand):
 				if command.lang is None:
 					curLang = defaultLang
 				else:
@@ -172,7 +173,7 @@ class LanguageDetector(object):
 							if sb.getvalue():
 								yield sb.getvalue()
 								sb.truncate(0)
-							yield speech.LangChangeCommand(curLang)
+							yield speech.commands.LangChangeCommand(curLang)
 							tmpLang = curLang.split("_")[0]
 						sb.write(c)
 						continue
@@ -200,15 +201,16 @@ class LanguageDetector(object):
 						sb.truncate(0)
 					tmpLang = newLangFirst
 					if newLang == curLang:
-						yield speech.LangChangeCommand(newLang)
+						yield speech.commands.LangChangeCommand(newLang)
 					else:
-						yield speech.LangChangeCommand(tmpLang)
+						yield speech.commands.LangChangeCommand(tmpLang)
 					sb.write(c)
 				# Send the string, if we have one:
 				if sb.getvalue():
 					yield sb.getvalue()
 			else:
 				yield command
+
 
 	def find_language_for_charset(self, charset, curLang):
 		langs = self.blockLanguages[charset]
@@ -223,7 +225,7 @@ class LanguageDetector(object):
 
 	def process_for_spelling(self, text, locale=None):
 		if locale is None:
-			defaultLang = speech.getSynth().language
+			defaultLang = synthDriverHandler.getSynth().language
 		else:
 			defaultLang = locale
 		curLang = defaultLang
