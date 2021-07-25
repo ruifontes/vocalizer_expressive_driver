@@ -28,14 +28,15 @@ import languageHandler
 from logHandler import log
 import speech
 
-from dialogs import *
-from utils import *
+from .dialogs import *
+from .utils import *
 
-from vocalizer_validation_client import *
+from .vocalizer_validation_client import *
+import urllib.error
 from synthDrivers.vocalizer_expressive import _veTypes
 
 
-aboutMessage =_(u"""
+aboutMessage =_("""
 URL: {url}
 
 This product is composed of two independent components:
@@ -70,7 +71,7 @@ This component was developed by Tiflotecnia, LDA and Rui Batista, with contribut
 {contributors}
 """)
 
-contributors = u"NV Access ltd, ângelo Abrantes, Diogo Costa, Mesar Hameed, Sérgio Neves, NVDA translation team."
+contributors = "NV Access ltd, ângelo Abrantes, Diogo Costa, Mesar Hameed, Sérgio Neves, NVDA translation team."
 
 
 URL = "https://vocalizer-nvda.com"
@@ -82,16 +83,14 @@ def getLicenseInfo():
 
 _validationClient = None
 
-def _getValidationClient(activationCode=None):
+def _getValidationClient(emailOrCode=None, password=None, useActivationCode=False):
 	global _validationClient
 	if _validationClient is None:
-		if activationCode is not None:
-			_validationClient = VocalizerValidationClient(activationCode, None, True)
-		else:
-			email, password = storage.getCredentials()
-			if not email or not password:
+		if not useActivationCode and not emailOrCode and not password:
+			emailOrCode, password = storage.getCredentials()
+			if not emailOrCode and not password:
 				return None
-			_validationClient = VocalizerValidationClient(email, password)
+		_validationClient = VocalizerValidationClient(emailOrCode, password, useActivationCode)
 	return _validationClient
 
 RENEW_INTERVAL = 1800
@@ -125,7 +124,7 @@ class LicenseRenewer(object):
 				log.debug("Renewal data not available, checking later.")
 				self._timer.Start(RENEW_INTERVAL * 1000)
 			else:
-				if _getValidationClient(self._activationCode) is None:
+				if _getValidationClient(self._activationCode, useActivationCode=True) is None:
 					# Credentials not set,
 					wx.CallAfter(self._requestForCredentials)
 					return
@@ -137,7 +136,7 @@ class LicenseRenewer(object):
 				self._thread.start()
 
 	def _doRenew(self, number, token):
-		client = _getValidationClient(self._activationCode)
+		client = _getValidationClient(self._activationCode, useActivationCode=True)
 		try:
 			log.debug("Renewing vocalizer license data.")
 			newData = client.renew(number, token)
@@ -146,12 +145,12 @@ class LicenseRenewer(object):
 			log.debug("Vocalizer license data was renewed.")
 			self._timer.Stop()
 			#self._timer.Start(RENEW_INTERVAL * 1000)
-		except IOError, e:
+		except IOError as e:
 			log.error("Error renewing license.", exc_info=True)
 			self._reportError(e)
 
 	def _reportError(self, error):
-		if isinstance(error, urllib2.HTTPError) and error.getcode() in (401, 403, 404):
+		if isinstance(error, urllib.error.HTTPError) and error.getcode() in (401, 403, 404):
 			wx.CallAfter(gui.messageBox,
 			# Translators :message that is presented to the user on renewal slcense error.
 			_("Your license can not be verified. Please check the following:\n"
@@ -234,16 +233,18 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				# Translators: Tooltip for deleting activation.
 				_("Deletes the vocalizer for NVDA activation. Can not be reverted."))
 				gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.onRemoveLicenseMenu, item)
-			elif int(licenseInfo.info.licenseInfo.userId) == -1:
+			else:
 				item = licenseMenu.Append(wx.ID_ANY,
 				# Translators: Register license menu option
 				_("Register this license."),
 				# Translators: Tooltip for register license menu item.
 				_("Register this license with a vocalizer for NVDA account."))
 				gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.onRegisterLicenseMenu, item)
-			self.submenu_vocalizer.AppendMenu(wx.ID_ANY,
-			# Translators: Submenu with license related options
-			_("License Options"), licenseMenu)
+			self.submenu_vocalizer.AppendSubMenu(
+				licenseMenu,
+				# Translators: Submenu with license related options
+				_("License Options")
+			)
 
 		item = self.submenu_vocalizer.Append(wx.ID_ANY,
 		# Translators: Change credentials menu item
@@ -264,14 +265,15 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.onVoicesDownload, item)
 		item = self.submenu_vocalizer.Append(wx.ID_ANY, _("About Nuance Vocalizer for NVDA"))
 		gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.onAbout, item)
-		self.submenu_item = gui.mainFrame.sysTrayIcon.menu.InsertMenu(2, wx.ID_ANY, _("Vocalizer Expressive"), self.submenu_vocalizer)
+		self.submenu_item = gui.mainFrame.sysTrayIcon.menu.Insert(2, wx.ID_ANY, _("Vocalizer Expressive"), self.submenu_vocalizer)
 
 	def removeMenu(self):
 		if self.submenu_item is not None:
 			try:
-				gui.mainFrame.sysTrayIcon.menu.RemoveItem(self.submenu_item)
+				gui.mainFrame.sysTrayIcon.menu.Remove(self.submenu_item)
 			except AttributeError: # We can get this somehow from wx python when NVDA is shuttingdown, just ignore
 				pass
+			self.submenu_item.Destroy()
 
 	def onVocalizerLicenseMenu(self, event):
 		email, password = storage.getCredentials()
@@ -296,10 +298,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def onActivate(self, email, password, forcePortable=False):
 		progressDialog = self._popupProgressDialog()
-		client = _getValidationClient()
+		client = _getValidationClient(email, password)
 		try:
 			gui.ExecAndPump(self.callAndPass, client.getLicenseInfo, self._processInfoForActivation, forcePortable)
-		except urllib2.HTTPError, e:
+		except urllib.error.HTTPError as e:
 			self._reportHttpError(e)
 			raise
 		finally:
@@ -325,7 +327,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			progressDialog = self._popupProgressDialog()
 			try:
 				gui.ExecAndPump(self.callAndPass, client.activateLicense, self._processActivationData, forcePortable)
-			except urllib2.HTTPError, e:
+			except urllib.error.HTTPError as e:
 				self._reportHttpError(e)
 			finally:
 				progressDialog.done()
@@ -352,7 +354,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def callAndPass(self, func, next, *args):
 		ret = func()
-		wx.CallLater(100, next, ret, *args)
+		wx.CallAfter(wx.CallLater, 100, next, ret, *args)
 
 	def onVocalizerLicenseInfoMenu(self, event):
 		with VocalizerOpened():
@@ -410,7 +412,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			progressDialog = self._popupProgressDialog()
 			try:
 				gui.ExecAndPump(self._removeLicense, client)
-			except urllib2.HTTPError, e:
+			except urllib.error.HTTPError as e:
 				self._reportHttpError(e)
 				raise
 			finally:
@@ -426,7 +428,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		storage.saveLicenseData(None)
 		log.debug("License data deleted.")
 		info = client.getLicenseInfo()
-		wx.CallLater(100, self._removeLicenseSuccess, info)
+		wx.CallAfter(wx.CallLater, 100, self._removeLicenseSuccess, info)
 
 	def _removeLicenseSuccess(self, info):
 		gui.messageBox(
@@ -462,7 +464,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			if gui.messageBox(
 			# Translators: Message telling the user that he must register on the vocalizer web site first
 			_("To register your license you must create an account on the vocalizer web site."
-			"If you already have an account you may just continue.\n"
+			"If you already have an account you may just continue.~\n"
 			"Do you want to create an account now?"),
 			# Translators: Title of register dialog message
 			_("Vocalizer account needed"),
@@ -481,7 +483,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			info = getLicenseInfo()
 			code = info.info.licenseInfo.userName
 			number = info.info.licenseInfo.number
-		client = _getValidationClient()
+		client = _getValidationClient(email, password)
 		res = []
 		progressDialog = self._popupProgressDialog()
 		error = False
@@ -525,7 +527,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		progressDialog = self._popupProgressDialog()
 		try:
 			gui.ExecAndPump(self.callAndPass, client.getLicenseInfo, self.processActivationCount)
-		except urlib2.HTTPError, e:
+		except urlib2.HTTPError as e:
 			self._reportHttpError(e)
 			raise
 		finally:

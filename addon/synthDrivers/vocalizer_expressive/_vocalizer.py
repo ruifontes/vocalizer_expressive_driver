@@ -8,21 +8,19 @@
 import base64
 from ctypes import *
 import os.path
-import Queue
+import queue
 import threading
-from cStringIO import StringIO
-
 import addonHandler
 import config
 import globalVars
 from logHandler import log
 import nvwave
 import winKernel
-from storage import getLicenseData
+from .storage import getLicenseData
 # Import Vocalizer type definitions, constants and helpers.
-from _veTypes import *
+from ._veTypes import *
 
-import _tuningData
+from . import _tuningData
 
 # Python functions and callbacks
 class BgThread(threading.Thread):
@@ -55,11 +53,13 @@ def _execWhenDone(func, *args, **kwargs):
 	else:
 		func(*args, **kwargs)
 
+#: Keeps count of the number of bytes pushed for the current utterance.
+_numBytesPushed = 0
 
 @VE_CBOUTNOTIFY
 def callback(instance, outDev, message, userData):
 	""" Callback to handle assynchronous requests and messages from the synthecizer."""
-	global speakingInstance, lastIndex, feedBuf
+	global speakingInstance, _numBytesPushed
 	try:
 		outData = cast(message.contents.pParam, POINTER(VE_OUTDATA))
 		messageType = message.contents.eMessage
@@ -77,17 +77,26 @@ def callback(instance, outDev, message, userData):
 		if messageType == VE_MSG_OUTBUFDONE:
 			# Sound data and mark buffers were produced by vocalizer.
 			# Send wave data to be played:
-			if outData.contents.ulPcmBufLen > 0:
-				data = string_at(outData.contents.pOutPcmBuf, size=outData.contents.ulPcmBufLen)
-				feedBuf.write(data)
-				if feedBuf.tell() >= pcmBufLen:
-					player.feed(feedBuf.getvalue())
-					feedBuf.truncate(0)
-			# And check for bookmarks
+			data = string_at(outData.contents.pOutPcmBuf, size=outData.contents.ulPcmBufLen)
+			prevByte = 0
 			for i in range(int(outData.contents.ulMrkListLen)):
-				if outData.contents.pMrkList[i].eMrkType != VE_MRK_BOOKMARK:
+				mark = outData.contents.pMrkList[i]
+				if mark.eMrkType != VE_MRK_BOOKMARK:
 					continue
-				lastIndex = outData.contents.pMrkList[i].ulMrkId
+				index = mark.ulMrkId
+				sampleStart = mark.ulDestPos
+				BYTES_PER_SAMPLE = 2
+				indexByte = (sampleStart * BYTES_PER_SAMPLE)
+				# Subtract bytes in the utterance that have already been handled
+				# to give us the byte offset into the samples for this callback.
+				indexByte -= _numBytesPushed
+				player.feed(
+					data[prevByte:indexByte],
+					onDone=lambda index=index: onIndexReached(index)
+				)
+				prevByte = indexByte
+			player.feed(data[prevByte:])
+			_numBytesPushed += len(data)
 		elif messageType == VE_MSG_PAUSE:
 			# Synth was paused.
 			player.pause(True)
@@ -96,10 +105,8 @@ def callback(instance, outDev, message, userData):
 			player.pause(False)
 		elif messageType == VE_MSG_ENDPROCESS:
 			# Speaking ended (because there is no more text or it was stopped)
-			if speakingInstance is not None:
-				player.feed(feedBuf.getvalue())
-			feedBuf.truncate(0)
 			player.idle()
+			onIndexReached(None)
 			speakingInstance = None
 	except:
 		log.error("Vocalizer callback", exc_info=True)
@@ -113,13 +120,12 @@ platformDll = None
 hSpeechClass = None
 installResources = None
 speakingInstance = None
-lastIndex = None
+onIndexReached = None
 bgThread = None
-pcmBufLen = 8192
+pcmBufLen = 0x2000  # 8kb
 pcmBuf = None
 markBuf = None
 markBufSize = 100
-feedBuf = None
 bgQueue = None
 Player = None
 syncEvent = threading.Event()
@@ -151,7 +157,7 @@ def preInitialize():
 		platformResources.licenseToken = None
 	platformResources.u16NbrOfDataInstall = c_ushort(len(voiceAddons) + 1)
 	platformResources.apDataInstall = (c_wchar_p * (len(voiceAddons) + 1))()
-	platformResources.apDataInstall[0] = c_wchar_p(unicode(_basePath, "mbcs"))
+	platformResources.apDataInstall[0] = c_wchar_p(_basePath)
 	for i, addon in enumerate(voiceAddons):
 		platformResources.apDataInstall[i+1] = c_wchar_p(addon.path)
 	platformResources.pDatPtr_Table = None
@@ -162,25 +168,36 @@ def preInitialize():
 	veDll.ve_ttsInitialize(byref(installResources), byref(hSpeechClass))
 
 
-def initialize():
-	""" Initializes communication with vocalizer libraries. """
+def initialize(indexCallback=None):
+	""" Initializes communication with vocalizer libraries.
+
+	@param indexCallback: A function which is called when the synth reaches an index.
+		It is called with one argument:
+		the number of the index or C{None} when speech stops.
+	"""
 	global veDll, platformDll, hSpeechClass, installResources, bgThread, bgQueue
-	global pcmBuf, pcmBufLen, feedBuf, markBufSize, markBuf, player
+	global pcmBuf, pcmBufLen, markBufSize, markBuf, player
+	global onIndexReached
 	# load dlls and stuff:
 	preInitialize()
+	onIndexReached = indexCallback
 	# Start background thread
 	bgThread = BgThread()
-	bgQueue = Queue.Queue()
+	bgQueue = queue.Queue()
 	bgThread.start()
 
 	# and allocate PCM and mark buffers
 	pcmBuf = (c_byte * pcmBufLen)()
-	feedBuf = StringIO()
 	markBuf = (VE_MARKINFO * markBufSize)()
 	# Create a wave player
 	#sampleRate = sampleRateConversions[getParameter(VE_PARAM_FREQUENCY)]
 	sampleRate = 22050
-	player = nvwave.WavePlayer(1, sampleRate, 16, outputDevice=config.conf["speech"]["outputDevice"])
+	player = nvwave.WavePlayer(
+		channels=1,
+		samplesPerSec=sampleRate,
+		bitsPerSample=16,
+		outputDevice=config.conf["speech"]["outputDevice"],
+	)
 
 
 
@@ -193,8 +210,8 @@ def open(voice=None):
 
 	if voice is None:
 		# Initialize to some voice and language so the synth will not complain...
-		language = getLanguageList()[0].szLanguage
-		voice = getVoiceList(language)[0].szVoiceName
+		language = getLanguageList()[0].szLanguage.decode()
+		voice = getVoiceList(language)[0].szVoiceName.decode()
 	# Set Initial parameters
 	setParameters(instance,
 	[(VE_PARAM_VOICE, voice),
@@ -202,14 +219,14 @@ def open(voice=None):
 	(VE_PARAM_INITMODE, VE_INITMODE_LOAD_ONCE_OPEN_ALL),
 	(VE_PARAM_WAITFACTOR, 1),
 	(VE_PARAM_TEXTMODE, VE_TEXTMODE_STANDARD),
-	(VE_PARAM_TYPE_OF_CHAR, VE_TYPE_OF_CHAR_UTF16)])
+	(VE_PARAM_TYPE_OF_CHAR, VE_TYPE_OF_CHAR_UTF8)])
 
 	# Set callback
 	outDevInfo = VE_OUTDEVINFO()
 	outDevInfo.pfOutNotify  = callback
 	veDll.ve_ttsSetOutDevice(instance, byref(outDevInfo))
 	_tuningData.onVoiceLoad(instance, voice)
-	log.debug(u"Created synth instance for voice %s", voice)
+	log.debug(f"Created synth instance for voice {voice}")
 	return (instance, voice)
 
 def close(instance):
@@ -218,7 +235,7 @@ def close(instance):
 
 def terminate():
 	""" Terminates communication with vocalizer, freeing resources."""
-	global bgQueue, bgThread, player
+	global bgQueue, bgThread, player, onIndexReached
 	if bgThread:
 		bgQueue.put((None, None, None),)
 		bgThread.join()
@@ -227,6 +244,7 @@ def terminate():
 	bgThread, bgQueue = None, None
 	player.close()
 	player = None
+	onIndexReached = None
 	postTerminate()
 
 # FIXME: this should be moved to NVDA's winKernel
@@ -237,7 +255,7 @@ def freeLibrary(handle):
 
 def postTerminate():
 	global hSpeechClass, veDll, platformDll
-	global pcmBuf, feedBuf, markBuf
+	global pcmBuf, markBuf
 	if hSpeechClass is not None:
 		try:
 			veDll.ve_ttsUnInitialize(hSpeechClass)
@@ -245,13 +263,12 @@ def postTerminate():
 			pass # Wrong state or something, not too much deal.
 		hSpeechClass = None
 	pcmBuf = None
-	feedBuf = None
 	markBuf = None
 	platformDll.vplatform_ReleaseInterfaces(byref(installResources))
 	try:
 		freeLibrary(veDll._handle)
 		freeLibrary(platformDll._handle)
-	except WindowsError, e:
+	except WindowsError as e:
 		log.exception("Can not unload dll.")
 	finally:
 		del veDll
@@ -259,17 +276,18 @@ def postTerminate():
 
 def processText2Speech(instance, text):
 	""" Sends text to be spoken."""
+	# encode text to UTF-8
+	text = text.encode("utf-8", errors="surrogatepass")
 	inText = VE_INTEXT()
 	inText.eTextFormat = VE_NORM_TEXT # this is the only supported format...
-	# Text length in bytes (utf16 has 2).
-	inText.ulTextLength = c_uint(len(text) * 2)
-	inText.szInText = cast(c_wchar_p(text), c_void_p)
+	inText.ulTextLength = c_uint(len(text))
+	inText.szInText = cast(c_char_p(text), c_void_p)
 	_execWhenDone(_processText2Speech, instance, inText, mustBeAsync=True)
 
 def _processText2Speech(instance, inText):
-	global speakingInstance
+	global speakingInstance, _numBytesPushed
 	speakingInstance = instance
-	feedBuf.truncate(0)
+	_numBytesPushed = 0
 	veDll.ve_ttsProcessText2Speech(instance, byref(inText))
 	# We use the callback to stop speech but if this returns make sure isSpeaking is False
 	# Sometimes the synth don't deliver all messages
@@ -288,7 +306,7 @@ def stop():
 			if item[0] != _processText2Speech:
 				params.append(item)
 			bgQueue.task_done()
-	except Queue.Empty:
+	except queue.Empty:
 		# Let the exception break us out of this loop, as queue.empty() is not reliable anyway.
 		pass
 	for item in params:
@@ -298,7 +316,7 @@ def stop():
 		instance = speakingInstance
 		try:
 			veDll.ve_ttsStop(instance)
-		except VeError, e:
+		except VeError as e:
 			# Sometimes we may stop the synth when it is already stoped due to lake of proper synchronization.
 			# As this is a rare case we just catch the expception for wrong state
 			# that is returned by vocalizer.
@@ -317,7 +335,7 @@ def pause():
 	if speakingInstance  is not None:
 		try:
 			veDll.ve_ttsPause(speakingInstance)
-		except VeError, e:
+		except VeError as e:
 			if e.code != NUAN_E_WRONG_STATE:
 				# Ignore because synth is probably stopping.
 				raise
@@ -333,7 +351,7 @@ def getParameter(instance, paramId, type_=int):
 	params = (VE_PARAM * 1)()
 	params[0].ID = paramId
 	veDll.ve_ttsGetParamList(instance, params, c_ushort(1))
-	return params[0].uValue.usValue if type_ == int else params[0].uValue.szStringValue
+	return params[0].uValue.usValue if type_ == int else params[0].uValue.szStringValue.decode()
 
 def setParameters(instance, idAndValues):
 	""" Sets the values for many parameters in one call. """
@@ -344,8 +362,8 @@ def _setParameters(instance, idAndValues):
 	params = (VE_PARAM * size)()
 	for i, pair in enumerate(idAndValues):
 		params[i].ID = pair[0]
-		if isinstance(pair[1], basestring):
-			params[i].uValue.szStringValue = str(pair[1])
+		if isinstance(pair[1], str):
+			params[i].uValue.szStringValue = pair[1].encode()
 		else:
 			params[i].uValue.usValue = c_ushort(pair[1])
 	veDll.ve_ttsSetParamList(instance, params, c_ushort(size))
@@ -382,6 +400,7 @@ def getLanguageList():
 
 def getVoiceList(languageName):
 	""" Lists the available voices for language. """
+	languageName = languageName.encode()
 	nItems = c_ushort()
 	# Double call.
 	veDll.ve_ttsGetVoiceList(hSpeechClass, c_char_p(languageName), 0, None, byref(nItems))
@@ -394,6 +413,8 @@ def getVoiceList(languageName):
 
 def getSpeechDBList(languageName, voiceName):
 	""" Gets the available speech databases for voice and language (voice models). """
+	languageName = languageName.encode()
+	voiceName = voiceName.encode()
 	nItems = c_ushort()
 	# Double Call.
 	veDll.ve_ttsGetSpeechDBList(hSpeechClass, c_char_p(languageName), 0, c_char_p(voiceName), None, byref(nItems))
@@ -401,7 +422,7 @@ def getSpeechDBList(languageName, voiceName):
 	veDll.ve_ttsGetSpeechDBList(hSpeechClass, c_char_p(languageName), 0, c_char_p(voiceName), byref(speechDBInfos), byref(nItems))
 	voiceModels = []
 	for i in range(nItems.value):
-		voiceModels.append(speechDBInfos[i].szVoiceModel)
+		voiceModels.append(speechDBInfos[i].szVoiceModel.decode())
 	return voiceModels
 
 def resourceLoad(contentType, content, instance):

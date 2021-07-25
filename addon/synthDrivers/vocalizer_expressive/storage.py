@@ -15,6 +15,7 @@ import config
 import globalVars
 from logHandler import log
 import shlobj
+from fileUtils import FaultTolerantFile
 
 # Structures to use with windows data protection API
 class DATA_BLOB(Structure):
@@ -23,20 +24,25 @@ class DATA_BLOB(Structure):
 
 crypt32 = windll.crypt32
 
-VOCALIZER_CONFIG_FOLDER = u"vocalizer-for-nvda"
+VOCALIZER_CONFIG_FOLDER = "vocalizer-for-nvda"
 VOCALIZER_LICENSE_FILE = "activation.dat"
 VOCALIZER_CREDENTIALS_FILE = "credentials.dat"
 
 def _loadLicenseData(path):
-	log.debug(u"Loading license data from %s", path)
-	with open(path) as f:
-		data = pickle.load(f)
+	log.debug("Loading license data from %s", path)
+	with open(path, "rb") as f:
+		try:
+			data = pickle.load(f)
+		except pickle.UnpicklingError:
+			log.warning(f"Couldn't automatically unpickle {path!r}, trying manual method")
+			raw = f.read().replace(b"\r\n", b"\n")
+			data = pickle.loads(raw)
 		return data
 
 def _saveLicenseData(path, data):
-	log.debug(u"Saving license data to %s", path)
-	with open(path, "w") as f:
-		pickle.dump(f, data)
+	log.debug("Saving license data to %s", path)
+	with FaultTolerantFile(path) as f:
+		pickle.dump(f, data, protocol=2)
 
 
 def _getLocalConfigFolder():
@@ -50,7 +56,7 @@ def _getLicenseDirs(forcePortable=False):
 
 
 def _getLicenseDir(forcePortable=False):
-	return _getLicenseDirs(forcePortable=forcePortable).next()[0]
+	return next(_getLicenseDirs(forcePortable=forcePortable))[0]
 
 _licensePath = None
 _licenseData = None
@@ -84,18 +90,27 @@ def getCredentials():
 			installed = i
 	if credentialsPath is None:
 		return None, None
-	log.debug(u"Loading credentials from %s", credentialsPath)
-	with open(credentialsPath) as f:
-		credentials = pickle.load(f)
-		email = credentials['email']
-		password = credentials['password']
+	log.debug("Loading credentials from %s", credentialsPath)
+	with open(credentialsPath, "rb") as f:
+		try:
+			data = pickle.load(f)
+		except pickle.UnpicklingError:
+			log.warning(f"Couldn't automatically unpickle {credentialsPath!r}, trying manual method")
+			raw = f.read().replace(b"\r\n", b"\n")
+			data = pickle.loads(raw)
+		email = data['email']
+		password = data['password']
 		if password is not None and installed:
-			password = _decryptUserData(credentials['password'])
+			try:
+				password = _decryptUserData(password)
+			except:
+				log.error("Could not decrypt password", exc_info=True)
+				return None, None
 	return email, password
 
 def saveCredentials(email, password, forcePortable=False):
 	path = os.path.join(_getLicenseDir(forcePortable=forcePortable), VOCALIZER_CREDENTIALS_FILE)
-	log.debug(u"Saving credentials in %s", path)
+	log.debug("Saving credentials in %s", path)
 	try:
 		os.makedirs(os.path.dirname(path))
 	except WindowsError:
@@ -104,8 +119,8 @@ def saveCredentials(email, password, forcePortable=False):
 		data = dict(email=email, password=_encryptUserData(password))
 	else:
 		data = dict(email=email, password=password)
-	with open(path, "w") as f:
-		pickle.dump(data, f)
+	with FaultTolerantFile(path) as f:
+		pickle.dump(data, f, protocol=2)
 
 def deleteCredentials():
 	path = os.path.join(_getLicenseDir(), VOCALIZER_CREDENTIALS_FILE)
@@ -123,13 +138,14 @@ def saveLicenseData(data, forcePortable=False):
 			os.makedirs(dir)
 		_licensePath = path
 	if data is not None: # Store
-		with open(_licensePath, "w") as f:
-			pickle.dump(_licenseData, f)
+		with FaultTolerantFile(_licensePath) as f:
+			pickle.dump(_licenseData, f, protocol=2)
 	else: # Delete
 		os.unlink(_licensePath)
 		_licensePath = None
 
 def _encryptUserData(data):
+	data = data.encode("utf-8")
 	dataIn = DATA_BLOB()
 	dataIn.cbData = len(data)
 	dataIn.pbData = create_string_buffer(data, len(data))
@@ -145,6 +161,6 @@ def _decryptUserData(data):
 	dataOut = DATA_BLOB()
 	if not crypt32.CryptUnprotectData(byref(dataIn), None, None, None, None, 0, byref(dataOut)):
 		raise WindowsError("Can't unprotect data")
-	return string_at(dataOut.pbData, dataOut.cbData)
+	return string_at(dataOut.pbData, dataOut.cbData).decode("utf-8")
 
 

@@ -5,10 +5,10 @@
 #This file is covered by the GNU General Public License.
 #See the file GPL.txt for more details.
 
-from cStringIO import StringIO
+from io import StringIO
 import os.path
 import configobj
-from validate import Validator
+from configobj.validate import Validator
 import globalVars
 from logHandler import log
 

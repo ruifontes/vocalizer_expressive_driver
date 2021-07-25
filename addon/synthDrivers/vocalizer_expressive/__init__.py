@@ -2,6 +2,7 @@
 #A part of the vocalizer driver for NVDA (Non Visual Desktop Access)
 #Copyright (C) 2012 Rui Batista <ruiandrebatista@gmail.com>
 #Copyright (C) 2012 Tiflotecnia, lda. <www.tiflotecnia.com>
+#Copyright (C) 2019 Leonard de Ruijter (Babbage B.V.) <leonard@babbage.com>
 #This file is covered by the GNU General Public License.
 #See the file GPL.txt for more details.
 
@@ -12,16 +13,16 @@ import wx
 
 import addonHandler
 import config
-from synthDriverHandler import SynthDriver as BaseDriver, VoiceInfo
+from synthDriverHandler import SynthDriver as BaseDriver, VoiceInfo, synthIndexReached, synthDoneSpeaking
 import languageHandler
 from logHandler import log
 import speech
-import _languages
-import _vocalizer
-from _voiceManager import VoiceManager
+from . import _languages
+from . import _vocalizer
+from ._voiceManager import VoiceManager
 
-import languageDetection
-import _config
+from . import languageDetection
+from . import _config
 
 driverVersion = addonHandler.getCodeAddon().manifest['version']
 synthVersion = "1.1.1" # It would be great if the synth reported that...
@@ -36,12 +37,23 @@ voiceModelNames = {"full_vssq5f22" : "Premium High",
 class SynthDriver(BaseDriver):
 	name = "vocalizer_expressive"
 	description = "Nuance Vocalizer expressive %s" % synthVersion
-	supportedSettings=[BaseDriver.VoiceSetting(),
-			BaseDriver.VariantSetting(),
-			BaseDriver.RateSetting(),
-			BaseDriver.PitchSetting(),
+	supportedSettings = [
+		BaseDriver.VoiceSetting(),
+		BaseDriver.VariantSetting(),
+		BaseDriver.RateSetting(),
+		BaseDriver.PitchSetting(),
 		BaseDriver.VolumeSetting(),
-		]
+	]
+	supportedCommands = {
+		speech.IndexCommand,
+		speech.CharacterModeCommand,
+		speech.LangChangeCommand,
+		speech.BreakCommand,
+		speech.PitchCommand,
+		speech.RateCommand,
+		speech.VolumeCommand,
+	}
+	supportedNotifications = {synthIndexReached, synthDoneSpeaking}
 
 	@classmethod
 	def check(cls):
@@ -67,9 +79,9 @@ class SynthDriver(BaseDriver):
 
 		# Initialize the driver
 		try:
-			_vocalizer.initialize()
-			log.debug(u"Vocalizer info: %s" % self._info())
-		except _vocalizer.VeError, e:
+			_vocalizer.initialize(self._onIndexReached)
+			log.debug("Vocalizer info: %s" % self._info())
+		except _vocalizer.VeError as e:
 			if e.code == _vocalizer.VAUTONVDA_ERROR_INVALID:
 				log.info("Vocalizer license for NVDA is Invalid")
 			elif e.code == _vocalizer.VAUTONVDA_ERROR_DEMO_EXPIRED:
@@ -83,6 +95,12 @@ class SynthDriver(BaseDriver):
 		speech.speakSpelling = self.patchedSpeakSpelling
 		self._languageDetector = languageDetection.LanguageDetector(self._voiceManager.languages)
 
+
+	def _onIndexReached(self, index):
+		if index is not None:
+			synthIndexReached.notify(synth=self, index=index)
+		else:
+			synthDoneSpeaking.notify(synth=self)
 
 	def terminate(self):
 		speech.speak = self._realSpeakFunc
@@ -101,19 +119,38 @@ class SynthDriver(BaseDriver):
 		chunks = []
 		charMode = False
 		for command in speechSequence:
-			if isinstance(command, basestring):
+			if isinstance(command, str):
 				# If character mode is on use lower case characters
 				# Because the synth does not allow to turn off the caps reporting
 				if charMode:
 					command = command.lower()
-				# replace the excape character since it is used for parameter changing
+				# replace the escape character since it is used for parameter changing
 				chunks.append(command.replace('\x1b', ''))
 			elif isinstance(command, speech.IndexCommand):
 				# start and end The spaces here seem to be important
-				chunks.append(u" \x1b\\mrk=%d\\ " % command.index)
+				chunks.append(f" \x1b\\mrk={command.index}\\ ")
+			elif isinstance(command, speech.BreakCommand):
+				maxTime = 6553 if self.variant == "bet2" else 65535
+				breakTime = max(1, min(command.time, maxTime))
+				chunks.append(f" \x1b\\pause={breakTime}\\ ")
+			elif isinstance(command, speech.RateCommand):
+				boundedValue = max(0, min(command.newValue, 100))
+				factor = 25.0 if boundedValue >= 50 else 50.0
+				norm = 2.0 ** ((boundedValue - 50.0) / factor)
+				value = int(round(norm * 100))
+				chunks.append(f" \x1b\\rate={value}\\ ")
+			elif isinstance(command, speech.PitchCommand):
+				boundedValue = max(0, min(command.newValue, 100))
+				factor = 50.0
+				norm = 2.0 ** ((boundedValue - 50.0) / factor)
+				value = int(round(norm * 100))
+				chunks.append(f" \x1b\\pitch={value}\\ ")
+			elif isinstance(command, speech.VolumeCommand):
+				value = max(0, min(command.newValue, 100))
+				chunks.append(f" \x1b\\vol={value}\\ ")
 			elif isinstance(command, speech.CharacterModeCommand):
 				charMode = command.state
-				s = u" \x1b\\tn=spell\\ " if command.state else u" \x1b\\tn=normal\\ "
+				s = " \x1b\\tn=spell\\ " if command.state else " \x1b\\tn=normal\\ "
 				chunks.append(s)
 			elif isinstance(command, speech.LangChangeCommand):
 				if command.lang == currentLanguage:
@@ -134,25 +171,25 @@ class SynthDriver(BaseDriver):
 					# Same voice, next command.
 					continue
 				if chunks: # We changed voice, send what we already have to vocalizer.
-					_vocalizer.processText2Speech(voiceInstance, u"".join(chunks))
+					_vocalizer.processText2Speech(voiceInstance, "".join(chunks))
 					chunks = []
 				voiceInstance = newInstance
 		if chunks:
-			_vocalizer.processText2Speech(voiceInstance, u"".join(chunks))
+			_vocalizer.processText2Speech(voiceInstance, "".join(chunks))
 
-	def patchedSpeak(self, speechSequence, symbolLevel=None):
+	def patchedSpeak(self, speechSequence, symbolLevel=None, priority=None):
 		if config.conf["speech"]["autoLanguageSwitching"] \
 			and _config.vocalizerConfig['autoLanguageSwitching']['useUnicodeLanguageDetection']:
 			speechSequence = self._languageDetector.add_detected_language_commands(speechSequence)
-		self._realSpeakFunc(speechSequence, symbolLevel)
+		self._realSpeakFunc(speechSequence, symbolLevel, priority=priority)
 
-	def patchedSpeakSpelling(self, text,locale=None,useCharacterDescriptions=False):
+	def patchedSpeakSpelling(self, text, locale=None, useCharacterDescriptions=False, priority=None):
 		if config.conf["speech"]["autoLanguageSwitching"] \
 			and _config.vocalizerConfig['autoLanguageSwitching']['useUnicodeLanguageDetection']:
 				for text, loc in self._languageDetector.process_for_spelling(text, locale):
-					self._realSpellingFunc(text, loc, useCharacterDescriptions)
+					self._realSpellingFunc(text, loc, useCharacterDescriptions, priority=priority)
 		else:
-			self._realSpellingFunc(text, locale, useCharacterDescriptions)
+			self._realSpellingFunc(text, locale, useCharacterDescriptions, priority=priority)
 
 	def cancel(self):
 		_vocalizer.stop()
@@ -225,9 +262,6 @@ class SynthDriver(BaseDriver):
 		# Synchronize with the synth so the parameters
 		# we report are not from the previous voice.
 		_vocalizer.sync()
-
-	def _get_lastIndex(self):
-		return _vocalizer.lastIndex
 
 	def _get_variant(self):
 		return _vocalizer.getParameter(self._voiceManager.defaultVoiceInstance, _vocalizer.VE_PARAM_VOICE_MODEL, type_=str)

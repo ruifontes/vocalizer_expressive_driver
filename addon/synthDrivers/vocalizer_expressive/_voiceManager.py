@@ -11,11 +11,11 @@ import operator
 import languageHandler
 from logHandler import log
 from synthDriverHandler import VoiceInfo
-import _config
-import _languages
-import _tuningData
-import _tuningData
-import _vocalizer
+from . import _config
+from . import _languages
+from . import _tuningData
+from . import _vocalizer
+from functools import reduce
 
 
 PARAMETERS_TO_UPDATE = [_vocalizer.VE_PARAM_VOLUME, _vocalizer.VE_PARAM_SPEECHRATE, _vocalizer.VE_PARAM_PITCH]
@@ -38,7 +38,7 @@ class VoiceManager(object):
 		return self._defaultVoiceName
 
 	def setDefaultVoice(self, voiceName):
-		if voiceName not in self._voiceInfos.iterkeys():
+		if voiceName not in self._voiceInfos:
 			log.debugWarning("Voice not available, using default voice.")
 			return
 		instance = self.getVoiceInstance(voiceName)
@@ -62,7 +62,7 @@ class VoiceManager(object):
 
 	def close(self):
 		_vocalizer.sync() # Don't close while someething is still running
-		for voiceName, instance in self._instanceCache.iteritems():
+		for voiceName, instance in self._instanceCache.items():
 			self.onVoiceUnload(voiceName, instance)
 			_vocalizer.close(instance)
 		_config.save() # Flush the configuration file
@@ -73,18 +73,18 @@ class VoiceManager(object):
 		self._voiceParametersCount = defaultdict(lambda : 0)
 		languages = _vocalizer.getLanguageList()
 		voiceInfos = []
-		self._languageNamesToLocales = {l.szLanguage : _languages.getLocaleNameFromTLW(l.szLanguageTLW) for l in languages}
-		self._localesToLanguageNames = {v : k for (k, v) in self._languageNamesToLocales.iteritems()}
+		self._languageNamesToLocales = {l.szLanguage.decode() : _languages.getLocaleNameFromTLW(l.szLanguageTLW.decode()) for l in languages}
+		self._localesToLanguageNames = {v : k for (k, v) in self._languageNamesToLocales.items()}
 		# Keep lists of voices appropriate for each locale.
 		# Also collect existing voices for quick listing.
 		for l in languages:
-			voices = _vocalizer.getVoiceList(l.szLanguage)
+			voices = _vocalizer.getVoiceList(l.szLanguage.decode())
 			voiceInfos.extend([self._makeVoiceInfo(v) for v in voices])
-			voiceNames = [v.szVoiceName for v in voices]
-			self._localesToVoices[self._languageNamesToLocales[l.szLanguage]] = voiceNames
+			voiceNames = [v.szVoiceName.decode() for v in voices]
+			self._localesToVoices[self._languageNamesToLocales[l.szLanguage.decode()]] = voiceNames
 
 		# For locales with no country (i.g. "en") use all voices from all sub-locales
-		locales = sorted(self._localesToVoices.iterkeys(), key=self._localeGroupKey)
+		locales = sorted(self._localesToVoices, key=self._localeGroupKey)
 		for key, locales in itertools.groupby(locales, key=self._localeGroupKey):
 			if key not in self._localesToVoices:
 				self._localesToVoices[key] = reduce(operator.add, [self._localesToVoices[l] for l in locales])
@@ -92,8 +92,8 @@ class VoiceManager(object):
 		log.debug("Voices : %s", self._localesToVoices)
 		# Kepp a list with existing voices in VoiceInfo objects.
 		# sort voices by language and then voice name
-		voiceInfos = sorted(voiceInfos, cmp=self._cmpVoiceInfos)
-		items = [(v.ID, v) for v in voiceInfos]
+		voiceInfos = sorted(voiceInfos, key=lambda v: (v.language, v.id))
+		items = [(v.id, v) for v in voiceInfos]
 		self._voiceInfos = OrderedDict(items)
 
 	def setVoiceParameter(self, instance, param, value):
@@ -112,7 +112,7 @@ class VoiceManager(object):
 
 	@property
 	def languages(self):
-		return self._localesToLanguageNames.iterkeys()
+		return iter(self._localesToLanguageNames)
 
 	@property
 	def localeToVoicesMap(self):
@@ -144,7 +144,7 @@ class VoiceManager(object):
 
 	def onVoiceLoad(self, voiceName, instance):
 		""" Restores variant and other settings if available, when a voice is loaded."""
-		if voiceName in _config.vocalizerConfig['voices'].keys():
+		if voiceName in _config.vocalizerConfig['voices']:
 			variant = _config.vocalizerConfig['voices'][voiceName]['variant']
 			if variant is not None:
 				_vocalizer.setParameter(instance, _vocalizer.VE_PARAM_VOICE_MODEL, variant)
@@ -152,7 +152,7 @@ class VoiceManager(object):
 	def onVoiceUnload(self, voiceName, instance):
 		""" Saves variant to be restored for each voice."""
 		variant = _vocalizer.getParameter(instance, _vocalizer.VE_PARAM_VOICE_MODEL, type_=str)
-		if not voiceName in _config.vocalizerConfig['voices'].keys():
+		if voiceName not in _config.vocalizerConfig['voices']:
 			_config.vocalizerConfig['voices'][voiceName] = {}
 		_config.vocalizerConfig['voices'][voiceName]['variant'] = variant
 
@@ -168,7 +168,7 @@ class VoiceManager(object):
 		return self._voiceInfos[voiceName].language
 
 	def _makeVoiceInfo(self, v):
-		localeName = self._languageNamesToLocales.get(v.szLanguage, None)
+		localeName = self._languageNamesToLocales.get(v.szLanguage.decode(), None)
 		langDescription = None
 		# if we have the locale name use the localized language description from windows:
 		if localeName is not None:
@@ -176,9 +176,6 @@ class VoiceManager(object):
 		if not langDescription:
 			# For some languages (i.g. scotish english) windows doesn't gives us any description.
 			# The synth returned something in english, it is better than nothing.
-			langDescription = v.szLanguage
-		name = "%s - %s" % (v.szVoiceName, langDescription)
-		return VoiceInfo(v.szVoiceName, name, localeName or None)
-
-	def _cmpVoiceInfos(self, v1, v2):
-		return cmp(v1.language, v2.language ) or cmp(v1.ID, v2.ID)
+			langDescription = v.szLanguage.decode()
+		name = "%s - %s" % (v.szVoiceName.decode(), langDescription)
+		return VoiceInfo(v.szVoiceName.decode(), name, localeName or None)

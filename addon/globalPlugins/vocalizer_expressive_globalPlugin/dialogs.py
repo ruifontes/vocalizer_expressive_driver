@@ -16,7 +16,7 @@ from logHandler import log
 from synthDrivers.vocalizer_expressive import _config, storage
 from synthDrivers.vocalizer_expressive._voiceManager import VoiceManager
 from synthDrivers.vocalizer_expressive import languageDetection
-from utils import VocalizerOpened
+from .utils import VocalizerOpened
 
 class VocalizerLanguageSettingsDialog(gui.SettingsDialog):
 	title = _("Vocalizer Automatic Language Switching Settings")
@@ -38,7 +38,7 @@ class VocalizerLanguageSettingsDialog(gui.SettingsDialog):
 		localesSizer = wx.BoxSizer(wx.HORIZONTAL)
 		localesLabel = wx.StaticText(self, label=_("Locale Name:"))
 		localesSizer.Add(localesLabel)
-		localeNames = map(self._getLocaleReadableName, self._locales)
+		localeNames = list(map(self._getLocaleReadableName, self._locales))
 		self._localesChoice = wx.Choice(self, choices=localeNames)
 		self.Bind(wx.EVT_CHOICE, self.onLocaleChanged, self._localesChoice)
 		localesSizer.Add(self._localesChoice)
@@ -181,7 +181,8 @@ class EnterCredentialsDialog(gui.SettingsDialog):
 		return super(EnterCredentialsDialog, self).onOk(event)
 
 	def validateCredentials(self, email, password):
-		from vocalizer_validation_client import VocalizerValidationClient, urllib2
+		from .vocalizer_validation_client import VocalizerValidationClient
+		import urllib
 		def showError(error):
 			message = _("Error verifying credentials: {error}").format(error=error)
 			gui.messageBox(message, _("Error"), style=wx.ICON_ERROR)
@@ -189,7 +190,7 @@ class EnterCredentialsDialog(gui.SettingsDialog):
 		progressDialog = gui.IndeterminateProgressDialog(self, _("Verifying credentials."), _("Please wait while your credentials are being verified..."))
 		try:
 			gui.ExecAndPump(lambda : client.getLicenseInfo())
-		except urllib2.HTTPError, e:
+		except urllib.error.HTTPError as e:
 			error = _("Unknown HTTP error: {code}.".format(code=e.code))
 			code = int(e.code)
 			if code == 401:
@@ -200,7 +201,7 @@ class EnterCredentialsDialog(gui.SettingsDialog):
 				error = _("Access is not allowed.")
 			showError(error)
 			raise
-		except urllib2.URLError:
+		except urllib.error.URLError:
 			showError(_("Can not connect to Vocalizer for NVDA server. Please check if your internet connection is working."))
 			raise
 		finally:

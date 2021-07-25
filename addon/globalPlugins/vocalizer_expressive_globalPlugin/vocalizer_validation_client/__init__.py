@@ -1,1 +1,1 @@
-from client import VocalizerValidationClient
+from .client import VocalizerValidationClient

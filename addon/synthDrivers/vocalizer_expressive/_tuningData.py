@@ -5,13 +5,13 @@
 #This file is covered by the GNU General Public License.
 #See the file GPL.txt for more details.
 import os.path
-import _vocalizer
+from . import _vocalizer
 from logHandler import log
 
 BIN_DICT_CONTENT_TYPE = "application/edct-bin-dictionary"
 TEXT_RULESET_CONTENT_TYPE = "application/x-vocalizer-rettt+text"
 
-_tuningDataDir = os.path.join(unicode(os.path.dirname(__file__), "mbcs"), "tuningData")
+_tuningDataDir = os.path.join(os.path.dirname(__file__), "tuningData")
 
 _voiceDicts = {}
 

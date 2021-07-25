@@ -18,7 +18,7 @@ class VocalizerOpened(object):
 			try:
 				_vocalizer.initialize()
 				_opened = True
-			except _vocalizer.VeError, e:
+			except _vocalizer.VeError as e:
 				if e.code not in (_vocalizer.VAUTONVDA_ERROR_EXPIRED, _vocalizer.VAUTONVDA_ERROR_INVALID, _vocalizer.VAUTONVDA_ERROR_NOLICENSE, _vocalizer.VAUTONVDA_ERROR_DEMO_EXPIRED):
 					raise
 		_reentrancy += 1

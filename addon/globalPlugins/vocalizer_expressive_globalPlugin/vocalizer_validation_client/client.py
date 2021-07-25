@@ -2,25 +2,13 @@ import ctypes
 import os
 import os.path
 import sys
-# Try importing urllib and json modules, if not available use the bundled one.
-try:
-	import json
-	import urllib2
-except ImportError:
-	path = os.path.dirname(__file__)
-	if isinstance(path, unicode):
-		path = path.encode("mbcs")
-	sys.path.insert(0, path)
-	try:
-		import json
-		import urllib2
-	finally:
-		sys.path.remove(path)
-
+import json
+import urllib
 import ssl
 from logHandler import log
+import base64
 
-from constants import *
+from .constants import *
 
 
 class VocalizerValidationClient(object):
@@ -33,19 +21,20 @@ class VocalizerValidationClient(object):
 		self._headers = {'Content-type' : 'application/json'}
 		if not useActivationCode:
 			self._headers['Authorization'] = " ".join(("basic",
-				("%s:%s" % (emailOrCode, password)).encode("base64").strip()))
+				base64.b64encode(f"{emailOrCode}:{password}".encode().strip()).decode()))
 
 	def _do_request(self, url, data=None, expectedStatus=200):
 		if data is not None:
 			data = json.dumps(data)
-		request = urllib2.Request(url, data=data, headers=self._headers)
+			data=data.encode()
+		request = urllib.request.Request(url, data=data, headers=self._headers)
 		try:
-			response = urllib2.urlopen(request)
-		except urllib2.URLError as e:
-			if len(e.args) > 0 and isinstance(e.args[0], ssl.SSLError) and e.args[0].reason == u"CERTIFICATE_VERIFY_FAILED":
+			response = urllib.request.urlopen(request)
+		except urllib.error.URLError as e:
+			if len(e.args) > 0 and isinstance(e.args[0], ssl.SSLError) and e.args[0].reason == "CERTIFICATE_VERIFY_FAILED":
 				_updateWindowsRootCertificates()
 				# retry the request
-				response = urllib2.urlopen(request)
+				response = urllib.request.urlopen(request)
 			else:
 				raise 
 		return json.load(response)
@@ -119,11 +108,11 @@ class CERT_CHAIN_PARA(ctypes.Structure):
 	)
 
 def _updateWindowsRootCertificates():
-	import urllib
+	import urllib.request, urllib.parse, urllib.error
 	crypt = ctypes.windll.crypt32
 	# Get the server certificate.
 	sslCont = ssl._create_unverified_context()
-	u = urllib.urlopen("https://vocalizer-nvda.com/", context=sslCont)
+	u = urllib.request.urlopen("https://vocalizer-nvda.com/", context=sslCont)
 	cert = u.fp._sock.getpeercert(True)
 	u.close()
 	# Convert to a form usable by Windows.

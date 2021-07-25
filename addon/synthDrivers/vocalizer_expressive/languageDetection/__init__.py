@@ -3,43 +3,43 @@
 # Copyright (C) 2012 - Rui Batista <ruiandrebatista@gmail.com>
 #
 # This code is heavily based on the Python guess_language library.
-#   © 2012 spirit <hiddenspirit@gmail.com>
-#   https://bitbucket.org/spirit/guess_language/
+# Copyright 2012 spirit <hiddenspirit@gmail.com>
+# https://bitbucket.org/spirit/guess_language/
 #
-#   Original Python package:
-#   Copyright (c) 2008, Kent S Johnson
-#   http://code.google.com/p/guess-language/
+# Original Python package:
+# Copyright (c) 2008, Kent S Johnson
+# http://code.google.com/p/guess-language/
 #
-#   Original C++ version for KDE:
-#   Copyright (c) 2006 Jacob R Rideout <kde@jacobrideout.net>
-#   http://websvn.kde.org/branches/work/sonnet-refactoring/common/nlp/guesslanguage.cpp?view=markup
+# Original C++ version for KDE:
+# Copyright (c) 2006 Jacob R Rideout <kde@jacobrideout.net>
+# http://websvn.kde.org/branches/work/sonnet-refactoring/common/nlp/guesslanguage.cpp?view=markup
 #
-#   Original Language::Guess Perl module:
-#   Copyright (c) 2004-2006 Maciej Ceglowski
-#   http://web.archive.org/web/20090228163219/http://languid.cantbedone.org/
+# Original Language::Guess Perl module:
+# Copyright (c) 2004-2006 Maciej Ceglowski
+# http://web.archive.org/web/20090228163219/http://languid.cantbedone.org/
 #
-#   Note: Language::Guess is GPL-licensed. KDE developers received permission
-#   from the author to distribute their port under LGPL:
-#   http://lists.kde.org/?l=kde-sonnet&m=116910092228811&w=2
+# Note: Language::Guess is GPL-licensed. KDE developers received permission
+# from the author to distribute their port under LGPL:
+# http://lists.kde.org/?l=kde-sonnet&m=116910092228811&w=2
 #
-#   This program is free software: you can redistribute it and/or modify it
-#   under the terms of the GNU Lesser General Public License as published
-#   by the Free Software Foundation, either version 3 of the License,
-#   or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
 #
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty
-#   of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#   See the GNU Lesser General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU Lesser General Public License
-#   along with this program. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
 from collections import defaultdict
-from StringIO import StringIO # not cStringIO, we need unicode.
+from io import StringIO
 
-from blocks import BLOCKS, BLOCK_RSHIFT
+from .blocks import BLOCKS, BLOCK_RSHIFT
 
 import config
 from logHandler import log
@@ -121,14 +121,14 @@ class LanguageDetector(object):
 		if u"zh" in availableLanguages:
 			languageBlocks[u"zh"].extend([u"CJK Unified Ideographs", u"Bopomofo", u"Bopomofo Extended", u"KangXi Radicals"])
 		# Ad singletone languages (te only language for the range)
-		for k, v in SINGLETONS.iteritems():
+		for k, v in SINGLETONS.items():
 			if v in availableLanguages:
 				languageBlocks[v].append(k)
 		self.languageBlocks = languageBlocks
 
 		# cache a reversed version of the hash table too.
 		blockLanguages = defaultdict(lambda : [])
-		for k, v in languageBlocks.iteritems():
+		for k, v in languageBlocks.items():
 			for i in v:
 				blockLanguages[i].append(k)
 		self.blockLanguages = blockLanguages
