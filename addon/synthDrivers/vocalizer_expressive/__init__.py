@@ -1,0 +1,257 @@
+#vocalizer/__init__.py
+#A part of the vocalizer driver for NVDA (Non Visual Desktop Access)
+#Copyright (C) 2012 Rui Batista <ruiandrebatista@gmail.com>
+#Copyright (C) 2012 Tiflotecnia, lda. <www.tiflotecnia.com>
+#This file is covered by the GNU General Public License.
+#See the file GPL.txt for more details.
+
+from collections import OrderedDict
+import math
+import operator
+import wx
+
+import addonHandler
+import config
+from synthDriverHandler import SynthDriver as BaseDriver, VoiceInfo
+import languageHandler
+from logHandler import log
+import speech
+import _languages
+import _vocalizer
+from _voiceManager import VoiceManager
+
+import languageDetection
+import _config
+
+driverVersion = addonHandler.getCodeAddon().manifest['version']
+synthVersion = "1.1.1" # It would be great if the synth reported that...
+
+voiceModelNames = {"full_vssq5f22" : "Premium High",
+	"full_155mrf22" : "Premium",
+	"dri80_1175mrf22" : "Plus",
+	"dri40_155mrf22" : "Standard",
+	"bet3" : "Compact"}
+
+
+class SynthDriver(BaseDriver):
+	name = "vocalizer_expressive"
+	description = "Nuance Vocalizer expressive %s" % synthVersion
+	supportedSettings=[BaseDriver.VoiceSetting(),
+			BaseDriver.VariantSetting(),
+			BaseDriver.RateSetting(),
+			BaseDriver.PitchSetting(),
+		BaseDriver.VolumeSetting(),
+		]
+
+	@classmethod
+	def check(cls):
+		synth = speech.getSynth()
+		if synth and synth.name == cls.name:
+			return True # Synth is running so is available.
+		try:
+			_vocalizer.preInitialize()
+			return True
+		except:
+			log.debugWarning("Vocalizer not available.", exc_info=True)
+			return False
+		finally:
+			try:
+				_vocalizer.postTerminate()
+			except _vocalizer.VeError:
+				log.debugWarning("Error terminating vocalizer", exc_info=True)
+
+	def __init__(self):
+		self._veRate = 100
+		self._vePitch = 100
+		_config.load()
+
+		# Initialize the driver
+		try:
+			_vocalizer.initialize()
+			log.debug(u"Vocalizer info: %s" % self._info())
+		except _vocalizer.VeError, e:
+			if e.code == _vocalizer.VAUTONVDA_ERROR_INVALID:
+				log.info("Vocalizer license for NVDA is Invalid")
+			elif e.code == _vocalizer.VAUTONVDA_ERROR_DEMO_EXPIRED:
+				log.info("Vocalizer demo license for NVDA as expired.")
+			raise
+		self._voiceManager = VoiceManager()
+		# Patch speech.speak and store a reference to the real speak function.
+		self._realSpeakFunc = speech.speak
+		self._realSpellingFunc = speech.speakSpelling
+		speech.speak = self.patchedSpeak
+		speech.speakSpelling = self.patchedSpeakSpelling
+		self._languageDetector = languageDetection.LanguageDetector(self._voiceManager.languages)
+
+
+	def terminate(self):
+		speech.speak = self._realSpeakFunc
+		speech.speakSpelling = self._realSpellingFunc
+		try:
+			self.cancel()
+			self._voiceManager.close()
+			_vocalizer.terminate()
+		except RuntimeError:
+			log.error("Vocalizer terminate", exc_info=True)
+
+
+	def speak(self, speechSequence):
+		voiceInstance = defaultInstance = self._voiceManager.defaultVoiceInstance
+		currentLanguage = defaultLanguage = self.language
+		chunks = []
+		charMode = False
+		for command in speechSequence:
+			if isinstance(command, basestring):
+				# If character mode is on use lower case characters
+				# Because the synth does not allow to turn off the caps reporting
+				if charMode:
+					command = command.lower()
+				# replace the excape character since it is used for parameter changing
+				chunks.append(command.replace('\x1b', ''))
+			elif isinstance(command, speech.IndexCommand):
+				# start and end The spaces here seem to be important
+				chunks.append(u" \x1b\\mrk=%d\\ " % command.index)
+			elif isinstance(command, speech.CharacterModeCommand):
+				charMode = command.state
+				s = u" \x1b\\tn=spell\\ " if command.state else u" \x1b\\tn=normal\\ "
+				chunks.append(s)
+			elif isinstance(command, speech.LangChangeCommand):
+				if command.lang == currentLanguage:
+					# Keep on the same voice.
+					continue
+				if command.lang is None:
+					# No language, use default.
+					voiceInstance = defaultInstance
+					currentLanguage = defaultLanguage
+					continue
+				# Changed language, lets see what we have.
+				newInstance = self._voiceManager.getVoiceInstanceForLanguage(command.lang)
+				currentLanguage = command.lang
+				if newInstance is None:
+					# No voice for this language, use default.
+					newInstance = defaultInstance
+				if newInstance == voiceInstance:
+					# Same voice, next command.
+					continue
+				if chunks: # We changed voice, send what we already have to vocalizer.
+					_vocalizer.processText2Speech(voiceInstance, u"".join(chunks))
+					chunks = []
+				voiceInstance = newInstance
+		if chunks:
+			_vocalizer.processText2Speech(voiceInstance, u"".join(chunks))
+
+	def patchedSpeak(self, speechSequence, symbolLevel=None):
+		if config.conf["speech"]["autoLanguageSwitching"] \
+			and _config.vocalizerConfig['autoLanguageSwitching']['useUnicodeLanguageDetection']:
+			speechSequence = self._languageDetector.add_detected_language_commands(speechSequence)
+		self._realSpeakFunc(speechSequence, symbolLevel)
+
+	def patchedSpeakSpelling(self, text,locale=None,useCharacterDescriptions=False):
+		if config.conf["speech"]["autoLanguageSwitching"] \
+			and _config.vocalizerConfig['autoLanguageSwitching']['useUnicodeLanguageDetection']:
+				for text, loc in self._languageDetector.process_for_spelling(text, locale):
+					self._realSpellingFunc(text, loc, useCharacterDescriptions)
+		else:
+			self._realSpellingFunc(text, locale, useCharacterDescriptions)
+
+	def cancel(self):
+		_vocalizer.stop()
+
+	def pause(self, switch):
+		if switch:
+			_vocalizer.pause()
+		else:
+			_vocalizer.resume()
+
+	def _get_volume(self):
+		return _vocalizer.getParameter(self._voiceManager.defaultVoiceInstance, _vocalizer.VE_PARAM_VOLUME)
+
+	def _set_volume(self, value):
+		self._voiceManager.setVoiceParameter(self._voiceManager.defaultVoiceInstance, _vocalizer.VE_PARAM_VOLUME, int(value))
+
+	# Vocalizer rate goes from 50 (2x slower than normal) 
+	# to 400 (4 x faaster than normal).
+	# we map 0% to 50, 100 to 50% and 400% to 100%.
+	# This is an exponential function of base 2.
+	# But we use  a multiplicative factor of 50 on the first half and 25 on the remaining.
+	def _get_rate(self):
+		self._veRate = _vocalizer.getParameter(self._voiceManager.defaultVoiceInstance, _vocalizer.VE_PARAM_SPEECHRATE)
+		norm = self._veRate / 100.0
+		factor = 25 if norm  >= 1 else 50
+	# Floating point madness...
+		return int(round(50 + factor * math.log(norm, 2)))
+
+	def _set_rate(self, value):
+		# Simply the inverse of the above, no magic, just plain math.
+		factor = 25.0 if value >= 50 else 50.0
+		norm = 2.0 ** ((value - 50.0) / factor)
+		value = int(round(norm * 100))
+		self._voiceManager.setVoiceParameter(self._voiceManager.defaultVoiceInstance, _vocalizer.VE_PARAM_SPEECHRATE, value)
+		self._veRate = value
+
+	# Pitch is exponential, but the factor is constant.
+	def _get_pitch(self):
+		self._vePitch = _vocalizer.getParameter(self._voiceManager.defaultVoiceInstance, _vocalizer.VE_PARAM_PITCH)
+		norm = self._vePitch / 100.0
+		factor = 50
+	# Floating point madness...
+		return int(round(50 + factor * math.log(norm, 2)))
+
+	def _set_pitch(self, value):
+		# Simply the inverse of the above, no magic, just plain math.
+		factor = 50.0
+		norm = 2.0 ** ((value - 50.0) / factor)
+		value = int(round(norm * 100))
+		self._voiceManager.setVoiceParameter(self._voiceManager.defaultVoiceInstance, _vocalizer.VE_PARAM_PITCH, value)
+		self._vePitch = value
+
+	def _getAvailableVoices(self):
+		return self._voiceManager.voiceInfos
+
+	def _get_voice(self):
+		return self._voiceManager.defaultVoiceName
+
+	def _set_voice(self, voiceName):
+		if voiceName == self._voiceManager.defaultVoiceName:
+			return
+		# Stop speech before setting a new voice to avoid voice instances
+		# continuing speaking when changing voices for, e.g., say-all
+		# See NVDA ticket #3540
+		_vocalizer.stop()
+		self._voiceManager.setDefaultVoice(voiceName)
+		# Available variants are cached by default. As variants maybe different for each voice remove the cached value
+		if hasattr(self, '_availableVariants'):
+			del self._availableVariants
+		# Synchronize with the synth so the parameters
+		# we report are not from the previous voice.
+		_vocalizer.sync()
+
+	def _get_lastIndex(self):
+		return _vocalizer.lastIndex
+
+	def _get_variant(self):
+		return _vocalizer.getParameter(self._voiceManager.defaultVoiceInstance, _vocalizer.VE_PARAM_VOICE_MODEL, type_=str)
+
+	def _set_variant(self, name):
+		try:
+			self._voiceManager.setVoiceParameter(self._voiceManager.defaultVoiceInstance, _vocalizer.VE_PARAM_VOICE_MODEL, name)
+		except _vocalizer.VeError:
+			# some models may not be available.
+			log.debugWarning("Model not available: %s", name)
+
+	def _getAvailableVariants(self):
+		language = _vocalizer.getParameter(self._voiceManager.defaultVoiceInstance, _vocalizer.VE_PARAM_LANGUAGE, type_=str) # FIXME: store language...
+		voice = self.voice
+		dbs = _vocalizer.getSpeechDBList(language, voice)
+		return OrderedDict([(d, VoiceInfo(d, voiceModelNames[d])) for d in dbs])
+	
+	def _get_availableLanguages(self):
+		return self._voiceManager.languages
+
+	def _get_language(self):
+		return self._voiceManager.getVoiceLanguage()
+
+	def _info(self):
+		s = [self.description]
+		s.append("driver version %s" % driverVersion)
+		return ", ".join(s)
