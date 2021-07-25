@@ -4,7 +4,7 @@
 #Copyright (C) 2012 Tiflotecnia, lda. <www.tiflotecnia.com>
 #This file is covered by the GNU General Public License.
 #See the file GPL.txt for more details.
-import synthDriverHandler
+import speech
 
 _reentrancy = 0
 _opened = False
@@ -14,7 +14,7 @@ class VocalizerOpened(object):
 		global _opened, _reentrancy
 		from synthDrivers import vocalizer_expressive
 		from synthDrivers.vocalizer_expressive import _vocalizer
-		if synthDriverHandler.getSynth().name != vocalizer_expressive.SynthDriver.name and _reentrancy == 0:
+		if speech.commands.getSynth().name != vocalizer_expressive.SynthDriver.name and _reentrancy == 0:
 			try:
 				_vocalizer.initialize()
 				_opened = True
@@ -29,7 +29,7 @@ class VocalizerOpened(object):
 		from synthDrivers import vocalizer_expressive
 		from synthDrivers.vocalizer_expressive import _vocalizer
 		_reentrancy -= 1
-		if synthDriverHandler.getSynth().name != vocalizer_expressive.SynthDriver.name and _opened and _reentrancy == 0:
+		if speech.commands.getSynth().name != vocalizer_expressive.SynthDriver.name and _opened and _reentrancy == 0:
 			try:
 				_vocalizer.terminate()
 			except _vocalizer.VeError:
