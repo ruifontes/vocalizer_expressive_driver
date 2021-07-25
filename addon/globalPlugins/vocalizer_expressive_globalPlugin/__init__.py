@@ -9,6 +9,7 @@
 import datetime
 import gettext
 import os.path
+from ui import message
 import shutil
 import subprocess
 import threading

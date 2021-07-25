@@ -45,19 +45,19 @@ class SynthDriver(BaseDriver):
 		BaseDriver.VolumeSetting(),
 	]
 	supportedCommands = {
-		speech.IndexCommand,
-		speech.CharacterModeCommand,
-		speech.LangChangeCommand,
-		speech.BreakCommand,
-		speech.PitchCommand,
-		speech.RateCommand,
-		speech.VolumeCommand,
+		speech.commands.IndexCommand,
+		speech.commands.CharacterModeCommand,
+		speech.commands.LangChangeCommand,
+		speech.commands.BreakCommand,
+		speech.commands.PitchCommand,
+		speech.commands.RateCommand,
+		speech.commands.VolumeCommand,
 	}
 	supportedNotifications = {synthIndexReached, synthDoneSpeaking}
 
 	@classmethod
 	def check(cls):
-		synth = speech.getSynth()
+		synth = speech.commands.getSynth()
 		if synth and synth.name == cls.name:
 			return True # Synth is running so is available.
 		try:
@@ -88,11 +88,12 @@ class SynthDriver(BaseDriver):
 				log.info("Vocalizer demo license for NVDA as expired.")
 			raise
 		self._voiceManager = VoiceManager()
-		# Patch speech.speak and store a reference to the real speak function.
+		# Patch speech.commands.speak and store a reference to the real speak function.
 		self._realSpeakFunc = speech.speak
 		self._realSpellingFunc = speech.speakSpelling
-		speech.speak = self.patchedSpeak
-		speech.speakSpelling = self.patchedSpeakSpelling
+		speech.commands.speakWithoutPauses = self.patchedSpeak
+		speech.commands.speak = self.patchedSpeak
+		speech.commands.speakSpelling = self.patchedSpeakSpelling
 		self._languageDetector = languageDetection.LanguageDetector(self._voiceManager.languages)
 
 
@@ -103,8 +104,8 @@ class SynthDriver(BaseDriver):
 			synthDoneSpeaking.notify(synth=self)
 
 	def terminate(self):
-		speech.speak = self._realSpeakFunc
-		speech.speakSpelling = self._realSpellingFunc
+		speech.commands.speak = self._realSpeakFunc
+		speech.commands.speakSpelling = self._realSpellingFunc
 		try:
 			self.cancel()
 			self._voiceManager.close()
@@ -126,33 +127,33 @@ class SynthDriver(BaseDriver):
 					command = command.lower()
 				# replace the escape character since it is used for parameter changing
 				chunks.append(command.replace('\x1b', ''))
-			elif isinstance(command, speech.IndexCommand):
+			elif isinstance(command, speech.commands.IndexCommand):
 				# start and end The spaces here seem to be important
 				chunks.append(f"\x1b\\mrk={command.index}\\")
-			elif isinstance(command, speech.BreakCommand):
+			elif isinstance(command, speech.commands.BreakCommand):
 				maxTime = 6553 if self.variant == "bet2" else 65535
 				breakTime = max(1, min(command.time, maxTime))
 				chunks.append(f"\x1b\\pause={breakTime}\\")
-			elif isinstance(command, speech.RateCommand):
+			elif isinstance(command, speech.commands.RateCommand):
 				boundedValue = max(0, min(command.newValue, 100))
 				factor = 25.0 if boundedValue >= 50 else 50.0
 				norm = 2.0 ** ((boundedValue - 50.0) / factor)
 				value = int(round(norm * 100))
 				chunks.append(f"\x1b\\rate={value}\\")
-			elif isinstance(command, speech.PitchCommand):
+			elif isinstance(command, speech.commands.PitchCommand):
 				boundedValue = max(0, min(command.newValue, 100))
 				factor = 50.0
 				norm = 2.0 ** ((boundedValue - 50.0) / factor)
 				value = int(round(norm * 100))
 				chunks.append(f"\x1b\\pitch={value}\\")
-			elif isinstance(command, speech.VolumeCommand):
+			elif isinstance(command, speech.commands.VolumeCommand):
 				value = max(0, min(command.newValue, 100))
 				chunks.append(f"\x1b\\vol={value}\\")
-			elif isinstance(command, speech.CharacterModeCommand):
+			elif isinstance(command, speech.commands.CharacterModeCommand):
 				charMode = command.state
 				s = " \x1b\\tn=spell\\ " if command.state else " \x1b\\tn=normal\\ "
 				chunks.append(s)
-			elif isinstance(command, speech.LangChangeCommand):
+			elif isinstance(command, speech.commands.LangChangeCommand):
 				if command.lang == currentLanguage:
 					# Keep on the same voice.
 					continue
