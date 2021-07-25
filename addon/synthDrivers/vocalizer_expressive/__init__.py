@@ -128,26 +128,26 @@ class SynthDriver(BaseDriver):
 				chunks.append(command.replace('\x1b', ''))
 			elif isinstance(command, speech.IndexCommand):
 				# start and end The spaces here seem to be important
-				chunks.append(f" \x1b\\mrk={command.index}\\ ")
+				chunks.append(f"\x1b\\mrk={command.index}\\")
 			elif isinstance(command, speech.BreakCommand):
 				maxTime = 6553 if self.variant == "bet2" else 65535
 				breakTime = max(1, min(command.time, maxTime))
-				chunks.append(f" \x1b\\pause={breakTime}\\ ")
+				chunks.append(f"\x1b\\pause={breakTime}\\")
 			elif isinstance(command, speech.RateCommand):
 				boundedValue = max(0, min(command.newValue, 100))
 				factor = 25.0 if boundedValue >= 50 else 50.0
 				norm = 2.0 ** ((boundedValue - 50.0) / factor)
 				value = int(round(norm * 100))
-				chunks.append(f" \x1b\\rate={value}\\ ")
+				chunks.append(f"\x1b\\rate={value}\\")
 			elif isinstance(command, speech.PitchCommand):
 				boundedValue = max(0, min(command.newValue, 100))
 				factor = 50.0
 				norm = 2.0 ** ((boundedValue - 50.0) / factor)
 				value = int(round(norm * 100))
-				chunks.append(f" \x1b\\pitch={value}\\ ")
+				chunks.append(f"\x1b\\pitch={value}\\")
 			elif isinstance(command, speech.VolumeCommand):
 				value = max(0, min(command.newValue, 100))
-				chunks.append(f" \x1b\\vol={value}\\ ")
+				chunks.append(f"\x1b\\vol={value}\\")
 			elif isinstance(command, speech.CharacterModeCommand):
 				charMode = command.state
 				s = " \x1b\\tn=spell\\ " if command.state else " \x1b\\tn=normal\\ "
