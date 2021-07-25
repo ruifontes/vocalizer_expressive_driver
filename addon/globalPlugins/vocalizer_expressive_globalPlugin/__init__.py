@@ -52,14 +52,15 @@ Synthesizer Version: {synthVersion}
 This copy of the Nuance Vocalizer synthesizer is licensed to be used exclusively with the NVDA screen reader (Non Visual Desktop Access).
 
 License management components are property of Tiflotecnia, LDA.
-Copyright (C) 2012, 2013 Tiflotecnia, LDA. All rights reserved.
+Copyright (C) 2012, 2019 Tiflotecnia, LDA. All rights reserved.
 
 ---
 
 NVDA speech driver and interface for Nuance Vocalizer Expressive:
 
-Copyright (C) 2012, 2013 Tiflotecnia, LDA.
-Copyright (C) 2012, 2013 Rui Batista.
+Copyright (C) 2012, 2019 Tiflotecnia, LDA.
+Copyright (C) 2012, 2019 Rui Batista.
+Copyright (C) 2019 Babbage B.V.
 
 Version: {driverVersion}
 
@@ -83,14 +84,16 @@ def getLicenseInfo():
 
 _validationClient = None
 
-def _getValidationClient(emailOrCode=None, password=None, useActivationCode=False):
+def _getValidationClient(activationCode=None):
 	global _validationClient
 	if _validationClient is None:
-		if not useActivationCode and not emailOrCode and not password:
-			emailOrCode, password = storage.getCredentials()
-			if not emailOrCode and not password:
+		if activationCode is not None:
+			_validationClient = VocalizerValidationClient(activationCode, None, True)
+		else:
+			email, password = storage.getCredentials()
+			if not email or not password:
 				return None
-		_validationClient = VocalizerValidationClient(emailOrCode, password, useActivationCode)
+			_validationClient = VocalizerValidationClient(email, password)
 	return _validationClient
 
 RENEW_INTERVAL = 1800
@@ -124,7 +127,7 @@ class LicenseRenewer(object):
 				log.debug("Renewal data not available, checking later.")
 				self._timer.Start(RENEW_INTERVAL * 1000)
 			else:
-				if _getValidationClient(self._activationCode, useActivationCode=True) is None:
+				if _getValidationClient(self._activationCode) is None:
 					# Credentials not set,
 					wx.CallAfter(self._requestForCredentials)
 					return
@@ -136,7 +139,7 @@ class LicenseRenewer(object):
 				self._thread.start()
 
 	def _doRenew(self, number, token):
-		client = _getValidationClient(self._activationCode, useActivationCode=True)
+		client = _getValidationClient(self._activationCode)
 		try:
 			log.debug("Renewing vocalizer license data.")
 			newData = client.renew(number, token)
@@ -298,7 +301,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def onActivate(self, email, password, forcePortable=False):
 		progressDialog = self._popupProgressDialog()
-		client = _getValidationClient(email, password)
+		client = _getValidationClient()
 		try:
 			gui.ExecAndPump(self.callAndPass, client.getLicenseInfo, self._processInfoForActivation, forcePortable)
 		except urllib.error.HTTPError as e:
@@ -483,7 +486,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			info = getLicenseInfo()
 			code = info.info.licenseInfo.userName
 			number = info.info.licenseInfo.number
-		client = _getValidationClient(email, password)
+		client = _getValidationClient()
 		res = []
 		progressDialog = self._popupProgressDialog()
 		error = False
@@ -544,7 +547,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._openVoicesDownload()
 
 	def _openVoicesDownload(self):
-		webbrowser.open(VOICE_DOWNLOADS_URL_TEMPLATE.format(lang=languageHandler.getLanguage()))
+		webbrowser.open(VOICE_DOWNLOADS_URL_TEMPLATE.format(
+			lang=languageHandler.getLanguage().split("_")[0]
+		))
 
 	def onAbout(self, event):
 		from synthDrivers import vocalizer_expressive
@@ -553,6 +558,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		driverVersion = vocalizer_expressive.driverVersion
 		msg = aboutMessage.format(url=URL, contributors=contributors, **locals())
 		gui.messageBox(msg, _("About Nuance Vocalizer Expressive for NVDA"), wx.OK)
+
 	def showInformations(self):
 		from synthDrivers.vocalizer_expressive import _config
 		_config.load()

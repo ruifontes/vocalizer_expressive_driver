@@ -149,7 +149,7 @@ class LanguageDetector(object):
 				tmpLang = curLang.split("_")[0]
 				yield command
 				charset = None # Whatever will come, reset the charset.
-			elif isinstance(command, basestring):
+			elif isinstance(command, str):
 				sb.truncate(0)
 				prevInIgnore = False
 				for c in command:

@@ -42,7 +42,7 @@ def _loadLicenseData(path):
 def _saveLicenseData(path, data):
 	log.debug("Saving license data to %s", path)
 	with FaultTolerantFile(path) as f:
-		pickle.dump(f, data, protocol=2)
+		pickle.dump(f, data, protocol=0)
 
 
 def _getLocalConfigFolder():
@@ -120,7 +120,7 @@ def saveCredentials(email, password, forcePortable=False):
 	else:
 		data = dict(email=email, password=password)
 	with FaultTolerantFile(path) as f:
-		pickle.dump(data, f, protocol=2)
+		pickle.dump(data, f, protocol=0)
 
 def deleteCredentials():
 	path = os.path.join(_getLicenseDir(), VOCALIZER_CREDENTIALS_FILE)
@@ -139,7 +139,7 @@ def saveLicenseData(data, forcePortable=False):
 		_licensePath = path
 	if data is not None: # Store
 		with FaultTolerantFile(_licensePath) as f:
-			pickle.dump(_licenseData, f, protocol=2)
+			pickle.dump(_licenseData, f, protocol=0)
 	else: # Delete
 		os.unlink(_licensePath)
 		_licensePath = None
