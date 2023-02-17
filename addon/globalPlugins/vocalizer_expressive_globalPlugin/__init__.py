@@ -27,6 +27,8 @@ import gui
 import languageHandler
 from logHandler import log
 import speech
+# For update process
+from . update import *
 
 from .dialogs import *
 from .utils import *
@@ -184,6 +186,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._renewer = None
 		if globalVars.appArgs.secure:
 			return
+		# To allow waiting end of network tasks
+		core.postNvdaStartup.register(self.networkTasks)
 		# See if we have at least one voice installed
 		if not any(addon.name.startswith("vocalizer-expressive-voice-") for addon in addonHandler.getRunningAddons()):
 			wx.CallLater(2000, self.onNoVoicesInstalled)
@@ -203,6 +207,11 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				self._renewer = LicenseRenewer(startNow=startNow, activationCode=activationCode)
 			self.showInformations()
 		self._running = True
+
+	def networkTasks(self):
+		# Calling the update process...
+		_MainWindows = Initialize()
+		_MainWindows.start()
 
 	def createMenu(self):
 		self.submenu_vocalizer = wx.Menu()
@@ -624,6 +633,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._openVoicesDownload()
 
 	def  terminate(self):
+		core.postNvdaStartup.unregister(self.networkTasks)
 		if not self._running:
 			return
 		if self._renewer:

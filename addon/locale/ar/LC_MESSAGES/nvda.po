@@ -2,17 +2,18 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: NVDA bzr vocalizer driver\n"
-"Report-Msgid-Bugs-To: nvda-translations@freelists.org\n"
-"POT-Creation-Date: 2014-12-14 13:05+0000\n"
-"PO-Revision-Date: 2014-09-18 09:56+0200\n"
+"Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
+"POT-Creation-Date: 2023-02-17 15:07+0000\n"
+"PO-Revision-Date: 2023-02-17 15:26+0000\n"
 "Last-Translator: fatma\n"
 "Language-Team: \n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.9\n"
+"X-Generator: Poedit 3.2.2\n"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:41
 #, python-brace-format
 msgid ""
 "\n"
@@ -32,14 +33,15 @@ msgid ""
 "exclusively with the NVDA screen reader (Non Visual Desktop Access).\n"
 "\n"
 "License management components are property of Tiflotecnia, LDA.\n"
-"Copyright (C) 2012, 2013 Tiflotecnia, LDA. All rights reserved.\n"
+"Copyright (C) 2012, 2019 Tiflotecnia, LDA. All rights reserved.\n"
 "\n"
 "---\n"
 "\n"
 "NVDA speech driver and interface for Nuance Vocalizer Expressive:\n"
 "\n"
-"Copyright (C) 2012, 2013 Tiflotecnia, LDA.\n"
-"Copyright (C) 2012, 2013 Rui Batista.\n"
+"Copyright (C) 2012, 2019 Tiflotecnia, LDA.\n"
+"Copyright (C) 2012, 2019 Rui Batista.\n"
+"Copyright (C) 2019 Babbage B.V.\n"
 "\n"
 "Version: {driverVersion}\n"
 "\n"
@@ -88,9 +90,9 @@ msgstr ""
 "\n"
 "يخضع تعريف Vocalizer مع NVDA وواجهته التطبيقية للإصدار الثاني من رخصة جينو "
 "العمومية. وهي تقضي للمستخدم بكامل الحرية بتوزيع البرنامج أو تعديل مكوّناته "
-"البرمجية بأي طريقة شاء ما دام يُرفِق الرخصة مع البرنامج ويجعل مصدر الشفرة "
-"متاحًا لكل من يطلبه. وينطبق ذلك على كل من النسخة الأصلية والنسخة المعدَّلة من "
-"البرنامج بالإضافة إلى أية برامج تستعمل شفرة برمجية مأخوذة من هذا البرنامج.\n"
+"البرمجية بأي طريقة شاء ما دام يُرفِق الرخصة مع البرنامج ويجعل مصدر الشفرة متاحًا "
+"لكل من يطلبه. وينطبق ذلك على كل من النسخة الأصلية والنسخة المعدَّلة من البرنامج "
+"بالإضافة إلى أية برامج تستعمل شفرة برمجية مأخوذة من هذا البرنامج.\n"
 "ولمزيد من المعلومات يمكنكم الاطلاع على الرخصة من خلال قائمة المساعدة\n"
 "كما يمكنكم الاطلاع عليها عبر الإنترنت فللترجمة باللغة العربية (لنصّ رخصة جينو "
 "العمومية http://www.linuxfuture.org/download/Arabic_GPL_2.0.htm)  وللاطلاع "
@@ -102,13 +104,14 @@ msgstr ""
 "{contributors}\n"
 
 #. Translators :message that is presented to the user on renewal slcense error.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:161
 msgid ""
 "Your license can not be verified. Please check the following:\n"
 "1. Your credentials (email and password) are correct (you can change them "
 "under the vocalizer expressive menu)\n"
 "2. You are not using someone else's activation or you are not using the same "
-"activation in different computers at the same time. This is not legal, and "
-"is against license terms.\n"
+"activation in different computers at the same time. This is not legal, and is "
+"against license terms.\n"
 "3. You are having internet problems.\n"
 "\n"
 "For further clarification, please contact tiflotecnia, Lda, or your local "
@@ -124,91 +127,111 @@ msgstr ""
 "لمزيد من الإيضاح, يرجى التواصل مع tiflotecnia, Lda, أو موزع المنتج ببلدك."
 
 #. Translators: Vocalizer for NVDA error dialog title.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:167
 msgid "Vocalizer for NvDA Error"
 msgstr "خطأ في Vocalizer for NVDA "
 
 #. Translators: Message telling the user his credentials are not set.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:172
 msgid ""
 "Your Vocalizer for NVDA credentials are not set for this computer.\n"
-"You will need to set them to use vocalizer for NVDA for long time periods, "
-"so your license can be properly verified."
+"You will need to set them to use vocalizer for NVDA for long time periods, so "
+"your license can be properly verified."
 msgstr ""
 "لم تقم بإدخال البيانات الخاصة باستخدام المنتج لهذا الحاسوب.\n"
 "ستحتاج إلى إدخال تلك البيانات كي يمكنك استخدام المنتج لفترات طويلة, لذا يجب "
 "ترخيص المنتج."
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:174
 msgid "Vocalizer for NVDA warning"
 msgstr "تحذير من Vocalizer for NVDA "
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:218
 msgid "Automatic &Language Switching Settings"
 msgstr "الانتقال الآلي بين ال&لغات"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:218
 msgid "Configure which voice is to be used for each language."
 msgstr "اختر الصوت المناسب لكل لغة."
 
 #. Translators: Menu Item to enter Vocalizer license credentials and activate a license.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:224
 msgid "Activate License"
 msgstr "تنشيط الترخيص"
 
 #. Translators: Hint for the activation license menu
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:226
 msgid "Enter license credentials and activate for this computer."
 msgstr "ادخل بيانات الترخيص وتنشيطه مع هذا الحاسوب."
 
 #. Translators: Menu item to open a dialog with vocalizer license information
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:231
 msgid "View License Information"
 msgstr "عرض معلومات الترخيص"
 
 #. Translators: Hint for the license information menu item.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:233
 msgid "Check information about your Vocalizer license."
 msgstr "قم بمراجعة ترخيص منتجك."
 
 #. Translators: Check activation count menu option
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:238
 msgid "Check activation count"
 msgstr "افحص مرات التنشيط"
 
 #. Translators: Check activation count menu option tooltip.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:240
 msgid "Allows you to check your Vocalizer for NVDA activation count."
 msgstr "يتيح لك فحص عدد مرات تنشيط Vocalizer."
 
 #. Translators: Delete Activation menu option
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:244
 msgid "Delete Activation"
 msgstr "حذف الترخيص"
 
 #. Translators: Tooltip for deleting activation.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:246
 msgid "Deletes the vocalizer for NVDA activation. Can not be reverted."
 msgstr ""
 "يقوم بحذف الترخيص الخاص ب Vocalizer. يرجى العلم بأنه لا يمكن استرجاع الترخيص "
 "مرة أخرى."
 
 #. Translators: Register license menu option
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:251
 msgid "Register this license."
 msgstr "سجل هذا الترخيص"
 
 #. Translators: Tooltip for register license menu item.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:253
 msgid "Register this license with a vocalizer for NVDA account."
 msgstr "سجل هذا الترخيص بحساب Vocalizer مع NVDA."
 
 #. Translators: Submenu with license related options
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:258
 msgid "License Options"
 msgstr "خيارات الترخيص"
 
 #. Translators: Change credentials menu item
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:263
 msgid "Change account credentials"
 msgstr "تغيير بيانات المستخدم"
 
 #. Translators: Tooltip for change credentials option.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:265
 msgid ""
 "Allows setting of email and password that are used to access the Vocalizer "
 "licenses service."
 msgstr ""
-"يسمح لك بتغيير البريد الإلكتروني وكلمة المرور اللذان سيمكناك من الاتصال "
-"بخدمة الترخيص ل Vocalizer "
+"يسمح لك بتغيير البريد الإلكتروني وكلمة المرور اللذان سيمكناك من الاتصال بخدمة "
+"الترخيص ل Vocalizer "
 
 #. Translators: Menu item to Activate license on running portable copy.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:271
 msgid "Activate on portable copy"
 msgstr "الترخيص مع النسخ المحمولة من المنتج"
 
 #. Translators: Help for activate on portable copy menu item.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:273
 msgid ""
 "Activates a vocalizer for NVDA license on running portable copy, if an "
 "activation is already present on the computer"
@@ -216,22 +239,26 @@ msgstr ""
 "يمكنك من ترخيص النسخة المحمولة من Vocalizer إذا كان الترخيص موجود بالفعل على "
 "الحاسوب"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:276
 msgid "Download More Voices"
 msgstr "تحميل المزيد من الأصوات"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:276
 msgid "Open the vocalizer voices download page."
 msgstr "افتح صفحة تحميل أصوات Vocalizer"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:278
 msgid "About Nuance Vocalizer for NVDA"
 msgstr "نبذة عن Nuance Vocalizer مع NVDA"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:280
 msgid "Vocalizer Expressive"
 msgstr "Vocalizer Expressive"
 
 #. Translators: Message asking the user if he wants to activate a license on the running portable copy
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:302
 msgid ""
-"Are you sure you want to activate your license on the running portable "
-"copy?\n"
+"Are you sure you want to activate your license on the running portable copy?\n"
 "Only do this if you are preparing a portable NVDA on a computer where\n"
 "a Vocalizer for NVDA license is present."
 msgstr ""
@@ -240,10 +267,13 @@ msgstr ""
 "يوجد عليه ترخيص للمنتج."
 
 #. Translators: title for delete activation dialog
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:305
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:422
 msgid "Are you sure?"
 msgstr "هل أنت متأكد؟"
 
 #. Translators: message telling the user he has no activations left.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:328
 msgid ""
 "You have no activations left for your license. Please contact Tiflotecnia, "
 "lda, or your local distributor of Vocalizer for NVDA."
@@ -252,10 +282,12 @@ msgstr ""
 "Vocalizer for NVDA ببلدك."
 
 #. Translators: Title for the activation error message box.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:330
 msgid "Activation Error"
 msgstr "خطأ إدخال الترخيص"
 
 #. Translators: Message telling the user its current license count and information, and asking if he wants to activate his license on this NVDA copy
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:334
 #, python-brace-format
 msgid ""
 "{name}, you currently have {remainingLicenses} activations left.\n"
@@ -267,10 +299,12 @@ msgstr ""
 "إذا كنت تريد ذلك, سيتضاءل عدد مرات الترخيص مرة واحدة."
 
 #. Translators: Title for the activation dialog.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:338
 msgid "Nuance Vocalizer Activation"
 msgstr "تنشيط Nuance Vocalizer "
 
 #. Translators: Message telling the user activation was sucessful
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:353
 msgid ""
 "Your license is now enabled.\n"
 "NVDA will now be restarted.\n"
@@ -281,20 +315,24 @@ msgstr ""
 "شكرا لاستخدامك Vocalizer for NVDA."
 
 #. Translators: Successfull activation dialog title.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:357
 msgid "Success!"
 msgstr "تم!"
 
 #. Translators: Title of the dialog telling the user to wait for communication with vocalizer server.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:363
 msgid "Talking with Vocalizer for NVDA server."
 msgstr "التحدث إلى خادم Vocalizer for NVDA "
 
 #. Translators: Message telling the user to waith for the communication to server to happen.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:365
 msgid ""
 "Please wait while the communication with Vocalizer for NVDA server is "
 "performed."
 msgstr "يرجى الانتظار حتى يتم الاتصال بخادم Vocalizer for NVDA."
 
 #. Translators: Information about vocalizer license:
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:380
 #, python-brace-format
 msgid ""
 "User Name:\t{userName}\n"
@@ -308,25 +346,29 @@ msgstr ""
 "رقم الترخيص:\t{number}\n"
 
 #. Translators: License information dialog title.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:385
 msgid "License Information"
 msgstr "معلومات الترخيص"
 
 #. Translators: General error information title.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:392
 msgid "error"
 msgstr "خطأ"
 
 #. Translators: Error message telling the user that credentials are wrong.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:395
 msgid "Yourr email or password is incorrect. Please set your credentials."
 msgstr "بريدك الإلكتروني أو كلمة المرور غير صحيحة. يرجى إعادة إدخال البيانات."
 
 #. Translators: Error message telling the user the requested license was not found
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:398
 msgid ""
-"License not found. Please check you have a vocalizer for NVDA license "
-"enabled."
+"License not found. Please check you have a vocalizer for NVDA license enabled."
 msgstr ""
 "لم يتم العثور على ترخيص المنتج. يرجى التأكد من تفعيل رخصة vocalizer for NVDA."
 
 #. Translators: general error message
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:401
 #, python-brace-format
 msgid ""
 "Unknown error occured.\n"
@@ -336,6 +378,7 @@ msgstr ""
 "التفاصيل: {error}"
 
 #. Translators: Message telling the user he has to set is credentials to remove the license
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:410
 msgid ""
 "You must set your vocalizer expressive account credentials before removing "
 "the license.\n"
@@ -346,10 +389,14 @@ msgstr ""
 "هل تريد إدخالها الآن؟"
 
 #. Translators: Error
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:413
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:167
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:188
 msgid "Error"
 msgstr "خطأ"
 
 #. Translators: Message warning the user that removing an activation can not be reverted.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:419
 msgid ""
 "Are you sure you want to delete this Nuance Vocalizer for NVDA activation?\n"
 "This action can not be reverted.\n"
@@ -358,6 +405,7 @@ msgstr ""
 " يرجى العلم أنه لا يمكنك استرجاعه. \n"
 
 #. Translators: Message confirming successfull activation removal.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:448
 #, python-brace-format
 msgid ""
 "{name}, Your activation was deleted.\n"
@@ -369,24 +417,28 @@ msgstr ""
 "سيتم إعادة تشغيل NVDA الآن."
 
 #. Translators: Title of successful activation removal dialog
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:452
 msgid "Activation Deleted."
 msgstr "تم حذف التنشيط."
 
 #. Translators: Message telling the user that he must register on the vocalizer web site first
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:478
 msgid ""
-"To register your license you must create an account on the vocalizer web "
-"site.If you already have an account you may just continue.~\n"
+"To register your license you must create an account on the vocalizer web site."
+"If you already have an account you may just continue.~\n"
 "Do you want to create an account now?"
 msgstr ""
-"لتسجيل الترخيص الخاص بك يرجى إنشاء حساب على موقع Vocalizer. إذا كان لديك "
-"حساب بالفعل, يمكنك الاستمرار.\n"
+"لتسجيل الترخيص الخاص بك يرجى إنشاء حساب على موقع Vocalizer. إذا كان لديك حساب "
+"بالفعل, يمكنك الاستمرار.\n"
 "هل تريد إنشاء حساب الآن؟"
 
 #. Translators: Title of register dialog message
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:482
 msgid "Vocalizer account needed"
 msgstr "تحتاج إلى حساب Vocalizer"
 
 #. Translators: Error message in registering license.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:514
 msgid ""
 "There was an error registering your license.Please contact your distributor "
 "for help. The log file may contain further information."
@@ -395,18 +447,22 @@ msgstr ""
 "ملف التقرير على مزيد من المعلومات."
 
 #. Translators: Register error message title
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:517
 msgid "Error registering license."
 msgstr "خطأ في تسجيل الترخيص."
 
 #. Translators: Message telling the user registration was successful.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:524
 msgid "Registration was successful. NVDA will now be restarted."
 msgstr "تم تسجيل الترخيص بنجاح. سيتم الآن إعادة تشغيل NVDA."
 
 #. Translators: Title of successful registration message dialog
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:526
 msgid "Registration Successful."
 msgstr "تم التسجيل بنجاح."
 
 #. Translators: Message telling the user he must set his credentials to see his activation count.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:534
 msgid ""
 "You must set your Vocalizer for NVDA credentials before checking your "
 "activation count."
@@ -415,22 +471,27 @@ msgstr ""
 "هل تريد إدخالها الآن؟"
 
 #. Translators: Title of dialog informing the user he must set is credentials.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:536
 msgid "No credentials set"
 msgstr "لم يتم إدخال أية بيانات."
 
 #. Translators : Message reporting to the user his activation count.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:551
 #, python-brace-format
 msgid "{name}, you have {remainingLicenses} activations left."
 msgstr "{name}, باقي لديك {remainingLicenses} مرات لتنشيط الترخيص."
 
 #. Translators: Activation count dialog title.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:553
 msgid "Activation Count"
 msgstr "عدد مرات التنشيط"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:569
 msgid "About Nuance Vocalizer Expressive for NVDA"
 msgstr "نبذة عن Nuance Vocalizer Expressive  مع NVDA"
 
 #. Translators: Message telling the user that demo license as expired.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:586
 #, python-brace-format
 msgid ""
 "The Nuance Vocalizer for NVDA demonstration license has expired.\n"
@@ -445,10 +506,12 @@ msgstr ""
 " يرجى الملاحظة بأن نسبة من سعر المنتج ستذهب إلى التبرع من أجل الاستمرار في "
 "تطوير قارئ الشاشة NVDA."
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:589
 msgid "Vocalizer Demo Expired"
 msgstr "لقد انتهت النسخة التجريبية من Nuance Vocalizer"
 
 #. Translators: Message telling the user that he is running a demo license.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:602
 #, python-brace-format
 msgid ""
 "You are running a demo version of Nuance Vocalizer expressive for NVDA.\n"
@@ -464,9 +527,11 @@ msgstr ""
 "شكرا لاستخدامك Nuance Vocalizer expressive مع NVDA."
 
 #. Translators: Title of vocalizer demo version dialog.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:607
 msgid "Vocalizer Demo Version"
 msgstr "نسخة Vocalizer التجريبية"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:612
 msgid ""
 "The Vocalizer license you are trying to use is invalid.\n"
 "This might be happening due to one of two reasons:\n"
@@ -505,8 +570,8 @@ msgstr ""
 "فملف الترخيص لا يسمح به إلا لشخص واحد فقط.\n"
 "إذا كان ملف الترخيص الذي تحاول استخدامه ليس مملوك لك يرجى التراجع عن "
 "استخدامه.\n"
-"إن الاستخدام الغير قانوني لهذا المنتج (كأن تكون الرخصة غير قانونية) غير "
-"مسموح به من قبل قوانين البرمجيات الدولية.\n"
+"إن الاستخدام الغير قانوني لهذا المنتج (كأن تكون الرخصة غير قانونية) غير مسموح "
+"به من قبل قوانين البرمجيات الدولية.\n"
 "يرجى العلم بأنه سيتم تخصيص نسبة من سعر المنتج للتبرع به لصالح تطوير قارئ "
 "الشاشة NVDA.\n"
 "فمشاركة ملفات ترخيص المنتج ستؤدي إلى خفض التبرعات ل NVDA كما أنها ستحول دون "
@@ -516,9 +581,11 @@ msgstr ""
 " يرجى إعادة النظر في هذا الأمر.\n"
 "يمكنك إزالة هذه الرخصة الغير قانونية من قائمة Vocalizer."
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:624
 msgid "Vocalizer License is Invalid."
 msgstr "ترخيص Vocalizer الذي لديك غير قانوني."
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:628
 msgid ""
 "You have no Vocalizer voices installed.\n"
 "You need at least one voice installed to use Vocalizer for NVDA.\n"
@@ -530,53 +597,65 @@ msgstr ""
 "يمكنك تحميل جميع أصوات Vocalizer من صفحة المنتج.\n"
 "هل تريد فتح صفحة تحميل أصوات Vocalizer الآن؟"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:632
 msgid "No voices installed."
 msgstr "لا توجد أصوات مثبتة على الحاسوب."
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:22
 msgid "Vocalizer Automatic Language Switching Settings"
 msgstr "إعدادات Vocalizer للانتقال الآلي بين اللغات"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:35
 msgid "Select a locale, and then configure the voice to be used:"
 msgstr "اختر البلد, ثم اختر الصوت المناسب:"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:39
 msgid "Locale Name:"
 msgstr "اسم البلد:"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:46
 msgid "Voice Name:"
 msgstr "اسم الصوت:"
 
 #. Translators: Wether to use or not unicode characters based language detection.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:53
 msgid "Detect text language based on unicode characters (experimental)"
 msgstr "التعرف على نص اللغة اعتماد على أحرف التشفير الموحد (تجريبي)"
 
 #. Translators: Either to ignore or not ASCII punctuation and numbers when language detection is active
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:58
 msgid ""
 "Ignore numbers and common punctuation when detecting text language "
 "(experimental)"
-msgstr ""
-"تجاهل الأرقام وعلامات الترقيم المعروفة عند التعرف على نص اللغة (تجريبي)"
+msgstr "تجاهل الأرقام وعلامات الترقيم المعروفة عند التعرف على نص اللغة (تجريبي)"
 
 #. Translators: Option to set what language to assume for latin characters, in language detection
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:64
 msgid "Language assumed for latin characters:"
 msgstr "اللغة المفترض أن تستخدم الأحرف الاتينية:"
 
 #. Translators: Title of the dialog that prompts for vocalizer credentials.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:124
 msgid "Enter your Vocalizer Credentials"
 msgstr "ادخل بيانات Vocalizer:"
 
 #. Translators: This is the email Address people use to identify on Vocalizer licenses.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:134
 msgid "Email Address:"
 msgstr "البريد الإلكتروني:"
 
 #. Translators: This is the password people use to identify on Vocalizer licenses.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:143
 msgid "Password:"
 msgstr "كلمة المرور:"
 
 #. Translators: check box to prompt the user wether to store or not the password on this computer, when NVDA is installed.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:151
 msgid "Store password on this computer (your password will be encrypted)"
 msgstr "استرجاع كلمة المرور على هذا الحاسوب (كلمة المرور سيتم تشفيرها)"
 
 #. Translators: Store password on Portable configuration of NVDA
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:154
 msgid ""
 "Store Credentials in portable NVDA configuration (your password will be "
 "stored in clear text)"
@@ -584,56 +663,91 @@ msgstr ""
 "استرجاع البيانات في إعدادات النسخة المحمولة (سيتم استرجاع كلمة المرور في شكل "
 "نصي واضح غير مشفر)"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:166
 msgid "You must enter both email and password values."
 msgstr "يجب عليك إدخال البريد الإلكتروني وكلمة المرور في الحقول المخصصة."
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:187
 #, python-brace-format
 msgid "Error verifying credentials: {error}"
 msgstr "خطأ في التعرف على البيانات: {error}"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:190
 msgid "Verifying credentials."
 msgstr "جاري التحقق من صحة البيانات."
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:190
 msgid "Please wait while your credentials are being verified..."
 msgstr "يرجى الانتظار حتى التحقق من صحة البيانات..."
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:194
 #, python-brace-format
 msgid "Unknown HTTP error: {code}."
 msgstr "خطأ http غير معروف: {code}."
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:197
 msgid "Wrong email or password."
 msgstr "خطأ في كتابة البريد الإلكتروني أو كلمة المرور."
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:199
 msgid "No account was found with given email address."
 msgstr "لا يوجد حساب مسجل بهذا البريد الإلكتروني."
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:201
 msgid "Access is not allowed."
 msgstr "غير مسموح بالاتصال"
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:205
 msgid ""
 "Can not connect to Vocalizer for NVDA server. Please check if your internet "
 "connection is working."
 msgstr "تعذر الاتصال بموقع Vocalizer. يرجى التأكد من اتصالك بشبكة الإنترنت."
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:209
 msgid "Your credentials were verified successfully. Press OK to continue."
 msgstr "تم التحقق من صحة جميع الالبيانات. اضغط زر موافق للاستمرار."
 
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\dialogs.py:210
 msgid "Success"
 msgstr "تم الترخيص بنجاح!"
 
-#. Add-on description
-#. TRANSLATORS: Summary for this add-on to be shown on installation and add-on informaiton.
+#. Translators: Message dialog box to ask user if wants to update.
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\update.py:99
+msgid ""
+"It is available a new version of this add-on.\n"
+" Do you want to update?"
+msgstr ""
+"يوجد إصدار جديدة من هذه الإضافة .\n"
+" هل تريد التحديث الآن؟"
+
+#. Translators: Message dialog box to inform user that the add-on is not compatible
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\update.py:134
+msgid ""
+"This new version of this add-on is not compatible with your version of NVDA.\n"
+" The update process will be terminated."
+msgstr ""
+"هذا الإصدار غير متوافق مع إصدار NVDA الخاص بك.\n"
+" سيتم إلغاء عملية التحديث."
+
+#. Translators: Checkbox name in the configuration dialog
+#: addon\globalPlugins\vocalizer_expressive_globalPlugin\update.py:157
+msgid "Check for updates at startup"
+msgstr "تحقق من وجود تحديثات عند بدء التشغيل"
+
+#. Add-on summary, usually the user visible name of the addon.
+#. Translators: Summary for this add-on
+#. to be shown on installation and add-on information found in Add-ons Manager.
+#: buildVars.py:23
 msgid "Vocalizer Expressive 1.1 Driver"
 msgstr "تعريف Vocalizer Expressive 1.1  "
 
 #. Add-on description
-#. Translators: Long description to be shown for this add-on on installation and add-on information
-msgid ""
-" Driver and interfaces for Nuance Vocalizer\n"
-" expressive version 1.1."
+#. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
+#: buildVars.py:26
+msgid "Driver and interface for Nuance Vocalizer expressive version 1.1."
 msgstr ""
 "تعريف وواجهة Nuance Vocalizer\n"
-"إصدار متميز 1.1"
+"ار متميز 1.1"
 
 #~ msgid "No License."
 #~ msgstr "لا يوجد ترخيص."
@@ -648,8 +762,8 @@ msgstr ""
 #~ msgstr "Vocalizer"
 
 #~ msgid ""
-#~ "Choose the file that contains your license data on the dialog that will "
-#~ "be opened.\n"
+#~ "Choose the file that contains your license data on the dialog that will be "
+#~ "opened.\n"
 #~ "\n"
 #~ "If you don't have a vocalizer license for NVDA or are expiriencing other "
 #~ "problems please contact Tiflotecnia, LDA. \n"
@@ -662,8 +776,8 @@ msgstr ""
 #~ "If the Nuance Vocalizer license file doesn't belong to you should reframe "
 #~ "from using this product.\n"
 #~ "\n"
-#~ "Please note that a proportion of the price of Nuance Vocalizer for NVDA "
-#~ "is donated for continuing NVDA's development.\n"
+#~ "Please note that a proportion of the price of Nuance Vocalizer for NVDA is "
+#~ "donated for continuing NVDA's development.\n"
 #~ "Any shared license files will reduce donations to NVDA and good/cheap "
 #~ "accessibility for the blind across the world.\n"
 #~ "Further more, Nuance Vocalizer for NVDA is priced at the lowest value "
