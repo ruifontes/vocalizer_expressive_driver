@@ -15,6 +15,7 @@ import config
 import globalVars
 from logHandler import log
 import shlobj
+
 from fileUtils import FaultTolerantFile
 
 # Structures to use with windows data protection API
@@ -46,7 +47,7 @@ def _saveLicenseData(path, data):
 
 
 def _getLocalConfigFolder():
-	return os.path.join(shlobj.SHGetFolderPath(0, shlobj.CSIDL_APPDATA), VOCALIZER_CONFIG_FOLDER)
+	return os.path.join(shlobj.SHGetKnownFolderPath(shlobj.FolderId.ROAMING_APP_DATA), VOCALIZER_CONFIG_FOLDER)
 
 
 def _getLicenseDirs(forcePortable=False):
