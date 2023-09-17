@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # vocalizer/languageDetection/__init__.py
 # Copyright (C) 2012 - Rui Batista <ruiandrebatista@gmail.com>
+#Copyright (C) 2012 - 2023 Tiflotecnia, lda. <www.tiflotecnia.net>
 #
 # This code is heavily based on the Python guess_language library.
 # Copyright 2012 spirit <hiddenspirit@gmail.com>

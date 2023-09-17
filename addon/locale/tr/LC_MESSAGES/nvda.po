@@ -8,10 +8,10 @@ msgstr ""
 "Project-Id-Version: Vocalizer driver and interface for NVDA 1.0\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
 "POT-Creation-Date: 2023-02-17 15:07+0000\n"
-"PO-Revision-Date: 2023-02-17 18:35+0000\n"
-"Last-Translator: Çağrı Doğan <cagrid@hotmail.com>\n"
+"PO-Revision-Date: 2023-03-06 12:30+0300\n"
+"Last-Translator: Umut KORKMAZ <umutkork@gmail.com>\n"
 "Language-Team: Turkish <cagrid@hotmail.com>\n"
-"Language: tr\n"
+"Language: tr_TR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -204,7 +204,7 @@ msgstr "NVDA aktivasyonu için seslendiriciyi siler. Geri döndürülemez."
 #. Translators: Register license menu option
 #: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:251
 msgid "Register this license."
-msgstr "Lisans Bilgilerini Görüntüle"
+msgstr "Bu lisansı kaydet."
 
 #. Translators: Tooltip for register license menu item.
 #: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:253
@@ -219,7 +219,7 @@ msgstr "Lisans kaldırıldı"
 #. Translators: Change credentials menu item
 #: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:263
 msgid "Change account credentials"
-msgstr "hafif tona ayarla"
+msgstr "Hesap kimlik bilgilerini değiştir"
 
 #. Translators: Tooltip for change credentials option.
 #: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:265
@@ -431,7 +431,7 @@ msgstr ""
 #. Translators: Title of successful activation removal dialog
 #: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:452
 msgid "Activation Deleted."
-msgstr "çeviri silindi."
+msgstr "Aktivasyon Silindi."
 
 #. Translators: Message telling the user that he must register on the vocalizer web site first
 #: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:478
@@ -486,7 +486,7 @@ msgstr ""
 #. Translators: Title of dialog informing the user he must set is credentials.
 #: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:536
 msgid "No credentials set"
-msgstr "hafif tona ayarla"
+msgstr "Kimlik bilgisi ayarlanmadı"
 
 #. Translators : Message reporting to the user his activation count.
 #: addon\globalPlugins\vocalizer_expressive_globalPlugin\__init__.py:551

@@ -2,7 +2,7 @@
 #vocalizer_globalPlugin/__init__.py
 #A part of the vocalizer driver for NVDA (Non Visual Desktop Access)
 #Copyright (C) 2012, 2013 Rui Batista <ruiandrebatista@gmail.com>
-#Copyright (C) 2012, 2013 Tiflotecnia, lda. <www.tiflotecnia.com>
+#Copyright (C) 2012 - 2023 Tiflotecnia, lda. <www.tiflotecnia.net>
 #This file is covered by the GNU General Public License.
 #See the file GPL.txt for more details.
 
@@ -14,11 +14,11 @@ import subprocess
 import threading
 import time
 import webbrowser
-
 import configobj
 import wx
-
 import addonHandler
+
+# Start translation process
 addonHandler.initTranslation()
 import core
 import globalPluginHandler
@@ -27,12 +27,8 @@ import gui
 import languageHandler
 from logHandler import log
 import speech
-# For update process
-from . update import *
-
 from .dialogs import *
 from .utils import *
-
 from .vocalizer_validation_client import *
 import urllib.error
 from synthDrivers.vocalizer_expressive import _veTypes
@@ -60,7 +56,7 @@ Copyright (C) 2012, 2019 Tiflotecnia, LDA. All rights reserved.
 
 NVDA speech driver and interface for Nuance Vocalizer Expressive:
 
-Copyright (C) 2012, 2019 Tiflotecnia, LDA.
+Copyright (C) 2012 - 2023 Tiflotecnia, LDA.
 Copyright (C) 2012, 2019 Rui Batista.
 Copyright (C) 2019 Babbage B.V.
 
@@ -186,8 +182,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._renewer = None
 		if globalVars.appArgs.secure:
 			return
-		# To allow waiting end of network tasks
-		core.postNvdaStartup.register(self.networkTasks)
 		# See if we have at least one voice installed
 		if not any(addon.name.startswith("vocalizer-expressive-voice-") for addon in addonHandler.getRunningAddons()):
 			wx.CallLater(2000, self.onNoVoicesInstalled)
@@ -207,11 +201,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				self._renewer = LicenseRenewer(startNow=startNow, activationCode=activationCode)
 			self.showInformations()
 		self._running = True
-
-	def networkTasks(self):
-		# Calling the update process...
-		_MainWindows = Initialize()
-		_MainWindows.start()
 
 	def createMenu(self):
 		self.submenu_vocalizer = wx.Menu()
@@ -633,7 +622,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._openVoicesDownload()
 
 	def  terminate(self):
-		core.postNvdaStartup.unregister(self.networkTasks)
 		if not self._running:
 			return
 		if self._renewer:
