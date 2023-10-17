@@ -111,7 +111,7 @@ class LicenseRenewer(object):
 		else:
 			secs = 0
 		log.debug("License renewal starting in %d", secs)
-		self._timer.Start(secs * 1000)
+		self._timer.Start(int(secs) * 1000)
 
 	def _renew(self):
 		with VocalizerOpened():
