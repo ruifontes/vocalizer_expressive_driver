@@ -26,7 +26,7 @@ addon_info = {
 	"addon_description": _("""Driver and interface for Nuance Vocalizer expressive version 1.1.
 	To use it, you must have a valid license and install, at least, one voice downloadable from https://vocalizer-nvda.com/downloads"""),
 	# version
-	"addon_version": "3.1.10",
+	"addon_version": "3.1.11",
 	# Author(s)
 	"addon_author": "Tiflotecnia, LDA. <tiflotecnia@tiflotecnia.com>",
 	# URL for the add-on documentation support

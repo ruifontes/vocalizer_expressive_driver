@@ -3,13 +3,13 @@
 	"displayName": "Vocalizer Expressive 1.1 Driver",
 	"URL": "",
 	"description": "Driver and interface for Nuance Vocalizer expressive version 1.1.\n\tTo use it, you must have a valid license and install, at least, one voice downloadable from https://vocalizer-nvda.com/downloads",
-	"sha256": "9e41231a25b9cecce882a9ebc593486f9039fd560d928e4fe18627b0f43f852b",
+	"sha256": "35e1078a587c71f4c761ccb8407152bea35b3cb61d2e0930fd7c8e90cb3407ac",
 	"homepage": "https://github.com/ruifontes/vocalizer_expressive_driver",
-	"addonVersionName": "3.1.10",
+	"addonVersionName": "3.1.11",
 	"addonVersionNumber": {
 		"major": 3,
 		"minor": 1,
-		"patch": 10
+		"patch": 11
 	},
 	"minNVDAVersion": {
 		"major": 2022,
